@@ -1,25 +1,33 @@
-FROM    ubuntu:20.04 AS base
-
-## Install libraries by package
-ENV     DEBIAN_FRONTEND=noninteractive
-RUN     apt-get update && apt-get install -y tzdata sudo curl
-
-FROM    base AS build
-
-WORKDIR /tmp
-
 ARG     OME_VERSION=master
+ARG     BUILD_ENV=production
 ARG 	STRIP=TRUE
 ARG     GPU=FALSE
+
+FROM    ubuntu:20.04 AS base
 
 ENV     PREFIX=/opt/ovenmediaengine
 ENV     TEMP_DIR=/tmp/ome
 
-## Download OvenMediaEngine
+## Install libraries by package
+ENV     DEBIAN_FRONTEND=noninteractive
+RUN     apt-get update && apt-get install -y tzdata sudo curl git
+
+FROM    base AS dev-sources
+
+COPY ./ /tmp/ome
+WORKDIR /tmp/ome
+
+FROM base as production-sources
+
+## In production, download OvenMediaEngine from tarball
 RUN \
-        mkdir -p ${TEMP_DIR} && \
-        cd ${TEMP_DIR} && \
-        curl -sLf https://github.com/AirenSoft/OvenMediaEngine/archive/${OME_VERSION}.tar.gz | tar -xz --strip-components=1
+        if [ "$DEV" = "FALSE" ] ; then \
+                mkdir -p ${TEMP_DIR} && \
+                cd ${TEMP_DIR} && \
+                curl -sLf https://github.com/Syncronet-APS/OvenMediaEngine/archive/${OME_VERSION}.tar.gz | tar -xz --strip-components=1 ; \
+        fi
+
+FROM ${BUILD_ENV}-sources as build
 
 ## Install dependencies
 RUN \
@@ -44,10 +52,10 @@ RUN \
         mkdir -p ${PREFIX}/bin/origin_conf && \
         mkdir -p ${PREFIX}/bin/edge_conf && \
         cp ./bin/RELEASE/OvenMediaEngine ${PREFIX}/bin/ && \
-        cp ../misc/conf_examples/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
-        cp ../misc/conf_examples/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
-        cp ../misc/conf_examples/Edge.xml ${PREFIX}/bin/edge_conf/Server.xml && \
-        cp ../misc/conf_examples/Logger.xml ${PREFIX}/bin/edge_conf/Logger.xml && \
+        cp ../conf/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
+        cp ../conf/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
+        cp ../conf/Edge.xml ${PREFIX}/bin/edge_conf/Server.xml && \
+        cp ../conf/Logger.xml ${PREFIX}/bin/edge_conf/Logger.xml && \
         rm -rf ${DIR}
 
 FROM	base AS release
