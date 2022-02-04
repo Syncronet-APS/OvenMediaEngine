@@ -201,6 +201,11 @@
 						<AppWorkerCount>4</AppWorkerCount>
 						<StreamWorkerCount>8</StreamWorkerCount>
 						<OVT />
+						<FILE>
+							<RootPath>/mnt/recordings</RootPath>
+							<FilePath>/${VirtualHost}/${Application}/${Stream}/${StartTime:YYYYMMDDhhmmss}_${EndTime:YYYYMMDDhhmmss}.ts</FilePath>
+							<InfoPath>/${VirtualHost}/${Application}/${Stream}.xml</InfoPath>
+						</FILE>
 					</Publishers>
 				</Application>
 			</Applications>
