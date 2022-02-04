@@ -90,7 +90,7 @@
 			-->
 			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/access-control/admission-webhooks -->
 			<AdmissionWebhooks>
-				<ControlServerUrl>${env:DEFAULT_API_SERVER:http://zome-backend.test/hooks/ome/admission}</ControlServerUrl>
+				<ControlServerUrl>${env:DEFAULT_API_SERVER:http://172.17. 0.1:8000/hooks/ome/admission}</ControlServerUrl>
 				<SecretKey>1234</SecretKey>
 				<Timeout>3000</Timeout>
 				<Enables>
