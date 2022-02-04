@@ -43,6 +43,9 @@ if [ $# -gt 0 ]; then
             --name $name \
             $org/$name:$tag \
             $@
+    elif [ "$1" == "attach" ]; then
+        shift 1
+        docker attach $name $@
     else
         export EXTERNAL_IP=$(hostname -I | awk '{print $1}')
 
