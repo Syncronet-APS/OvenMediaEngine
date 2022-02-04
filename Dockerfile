@@ -50,11 +50,8 @@ RUN \
 ## Make running environment
 RUN \
         cd ${TEMP_DIR}/src && \
-        mkdir -p ${PREFIX}/bin/origin_conf && \
         mkdir -p ${PREFIX}/bin/edge_conf && \
         cp ./bin/RELEASE/OvenMediaEngine ${PREFIX}/bin/ && \
-        cp ../conf/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
-        cp ../conf/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
         cp ../conf/Edge.xml ${PREFIX}/bin/edge_conf/Server.xml && \
         cp ../conf/Logger.xml ${PREFIX}/bin/edge_conf/Logger.xml && \
         rm -rf ${DIR}
@@ -65,4 +62,4 @@ WORKDIR         /opt/ovenmediaengine/bin
 EXPOSE          80/tcp 8080/tcp 8090/tcp 1935/tcp 3333/tcp 3334/tcp 4000-4005/udp 10000-10010/udp 9000/tcp
 COPY            --from=build /opt/ovenmediaengine /opt/ovenmediaengine
 # Default run as Origin mode
-CMD             ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "origin_conf"]
+CMD             ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "edge_conf"]

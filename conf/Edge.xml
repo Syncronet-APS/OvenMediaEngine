@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <Server version="8">
 	<Name>OvenMediaEngine</Name>
@@ -80,7 +80,7 @@
 			<Name>default</Name>
 			<!--Distribution is a value that can be used when grouping the same vhost distributed across multiple servers. This value is output to the events log, so you can use it to aggregate statistics. -->
 			<Distribution>ovenmediaengine.com</Distribution>
-			
+
 			<!-- Settings for multi ip/domain and TLS -->
 			<Host>
 				<Names>
@@ -100,7 +100,7 @@
 				</TLS>
 				-->
 			</Host>
-			
+
 			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/signedpolicy
 
 			<SignedPolicy>
@@ -146,11 +146,138 @@
 					<Pass>
 						<Scheme>ovt</Scheme>
 						<Urls>
-							<Url>${env:DEFAULT_ORIGIN_SERVER:}:${env:DEFAULT_ORIGIN_PORT:9000}/</Url>
+							<Url>staging-rtmp.zometv.com:9000/</Url>
 						</Urls>
 					</Pass>
 				</Origin>
+				<!-- <Origin>
+					<Location>/</Location>
+					<Pass>
+						<Scheme>ovt</Scheme>
+						<Urls>
+							<Url>${env:DEFAULT_ORIGIN_SERVER:}:${env:DEFAULT_ORIGIN_PORT:9000}/</Url>
+						</Urls>
+					</Pass>
+				</Origin> -->
 			</Origins>
+
+			<!-- Settings for applications -->
+			<Applications>
+				<Application>
+					<Name>app</Name>
+					<!-- Application type (live/vod) -->
+					<Type>live</Type>
+					<OutputProfiles>
+						<OutputProfile>
+							<Name>bypass_stream</Name>
+							<OutputStreamName>${OriginStreamName}</OutputStreamName>
+							<Encodes>
+								<Audio>
+									<Bypass>true</Bypass>
+								</Audio>
+								<Video>
+									<Bypass>true</Bypass>
+								</Video>
+								<Audio>
+									<Codec>opus</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+							</Encodes>
+						</OutputProfile>
+						<OutputProfile>
+							<Name>fhd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_fhd</OutputStreamName>
+							<Encodes>
+								<!-- <Video>
+									<Codec>h264</Codec>
+									<Width>1920</Width>
+									<Height>1080</Height>
+									<Bitrate>4500000</Bitrate>
+									<Framerate>60.0</Framerate>
+								</Video> -->
+								<Video>
+									<Codec>h264</Codec>
+									<Bitrate>1045000</Bitrate>
+									<Framerate>60</Framerate>
+									<Width>1920</Width>
+									<Height>1080</Height>
+								</Video>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>240000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+							</Encodes>
+						</OutputProfile>
+
+						<OutputProfile>
+							<Name>hd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_hd</OutputStreamName>
+							<Encodes>
+								<!-- <Video>
+									<Codec>h264</Codec>
+									<Width>1280</Width>
+									<Height>720</Height>
+									<Bitrate>2000000</Bitrate>
+									<Framerate>30.0</Framerate>
+								</Video> -->
+								<Video>
+									<Codec>h264</Codec>
+									<Bitrate>1024000</Bitrate>
+									<Framerate>30</Framerate>
+									<Width>1280</Width>
+									<Height>720</Height>
+								</Video>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>24000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+							</Encodes>
+						</OutputProfile>
+
+						<OutputProfile>
+							<Name>sd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_sd</OutputStreamName>
+							<Encodes>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+								<Video>
+									<Codec>h264</Codec>
+									<Width>640</Width>
+									<Height>360</Height>
+									<Bitrate>500000</Bitrate>
+									<Framerate>30</Framerate>
+								</Video>
+							</Encodes>
+						</OutputProfile>
+					</OutputProfiles>
+					<Providers>
+						<OVT />
+						<RTMP />
+					</Providers>
+					<Publishers>
+						<AppWorkerCount>1</AppWorkerCount>
+						<StreamWorkerCount>8</StreamWorkerCount>
+						<OVT />
+						<HLS>
+							<SegmentDuration>5</SegmentDuration>
+							<SegmentCount>3</SegmentCount>
+							<CrossDomains>
+								<Url>*</Url>
+							</CrossDomains>
+						</HLS>
+					</Publishers>
+				</Application>
+			</Applications>
 		</VirtualHost>
 	</VirtualHosts>
 </Server>
