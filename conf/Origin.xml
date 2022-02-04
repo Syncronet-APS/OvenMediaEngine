@@ -42,12 +42,6 @@
 				<Port>${env:OME_ORIGIN_PORT:9000}</Port>
 				<WorkerCount>1</WorkerCount>
 			</OVT>
-			<HLS>
-				<Port>${env:OME_HLS_STREAM_PORT:8080}</Port>
-				<WorkerCount>1</WorkerCount>
-				<!-- If you want to use TLS, specify the TLS port -->
-				<!-- <TLSPort>443</TLSPort> -->
-			</HLS>
 		</Publishers>
 	</Bind>
 
@@ -94,6 +88,16 @@
 				</Enables>
 			</SignedPolicy>
 			-->
+			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/access-control/admission-webhooks -->
+			<AdmissionWebhooks>
+				<ControlServerUrl>${env:DEFAULT_API_SERVER:http://zome-backend.test/hooks/ome/admission}</ControlServerUrl>
+				<SecretKey>1234</SecretKey>
+				<Timeout>3000</Timeout>
+				<Enables>
+					<Providers>rtmp,webrtc,srt</Providers>
+					<Publishers>webrtc,hls,dash,lldash</Publishers>
+				</Enables>
+			</AdmissionWebhooks>
 
 			<!-- Settings for applications -->
 			<Applications>
@@ -101,6 +105,8 @@
 					<Name>app</Name>
 					<!-- Application type (live/vod) -->
 					<Type>live</Type>
+
+					<!-- Output profiles provide a way to offer multiple different bandwidths -->
 					<OutputProfiles>
 						<OutputProfile>
 							<Name>bypass_stream</Name>
@@ -114,15 +120,87 @@
 								</Video>
 							</Encodes>
 						</OutputProfile>
+						<OutputProfile>
+							<Name>fhd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_fhd</OutputStreamName>
+							<Encodes>
+								<!-- <Video>
+														<Codec>h264</Codec>
+														<Width>1920</Width>
+														<Height>1080</Height>
+														<Bitrate>4500000</Bitrate>
+														<Framerate>60.0</Framerate>
+													</Video> -->
+								<Video>
+									<Codec>h264</Codec>
+									<Bitrate>1045000</Bitrate>
+									<Framerate>60</Framerate>
+									<Width>1920</Width>
+									<Height>1080</Height>
+								</Video>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>240000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+							</Encodes>
+						</OutputProfile>
+
+						<OutputProfile>
+							<Name>hd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_hd</OutputStreamName>
+							<Encodes>
+								<!-- <Video>
+														<Codec>h264</Codec>
+														<Width>1280</Width>
+														<Height>720</Height>
+														<Bitrate>2000000</Bitrate>
+														<Framerate>30.0</Framerate>
+													</Video> -->
+								<Video>
+									<Codec>h264</Codec>
+									<Bitrate>1024000</Bitrate>
+									<Framerate>30</Framerate>
+									<Width>1280</Width>
+									<Height>720</Height>
+								</Video>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>24000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+							</Encodes>
+						</OutputProfile>
+
+						<OutputProfile>
+							<Name>sd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_sd</OutputStreamName>
+							<Encodes>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+								<Video>
+									<Codec>h264</Codec>
+									<Width>640</Width>
+									<Height>360</Height>
+									<Bitrate>500000</Bitrate>
+									<Framerate>30</Framerate>
+								</Video>
+							</Encodes>
+						</OutputProfile>
 					</OutputProfiles>
 					<Providers>
 						<RTMP />
 					</Providers>
 					<Publishers>
-						<AppWorkerCount>1</AppWorkerCount>
+						<AppWorkerCount>4</AppWorkerCount>
 						<StreamWorkerCount>8</StreamWorkerCount>
 						<OVT />
-						<STR />
 					</Publishers>
 				</Application>
 			</Applications>
