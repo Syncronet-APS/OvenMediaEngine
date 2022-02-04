@@ -67,20 +67,22 @@ namespace cfg
 		// Check weather the root value is array or not
 		bool IsArray(const ItemName &name) const;
 
+		MAY_THROWS(std::shared_ptr<ConfigError>)
 		std::any GetRootValue(ValueType value_type, bool resolve_path, OmitRule omit_rule, Json::Value *original_value) const;
+		MAY_THROWS(std::shared_ptr<ConfigError>)
 		std::any GetValue(ValueType value_type, const ItemName &name, bool resolve_path, OmitRule omit_rule, Json::Value *original_value) const;
 
 		// Create a data source from this context
 		DataSource NewDataSource(const ov::String &file_name, const ItemName &root_name) const
 		{
-			DataSource new_data_source(_type, _current_path, file_name, root_name);
+			DataSource new_data_source(_type, _current_file_path, file_name, root_name);
 
 			return new_data_source;
 		}
 
 		ov::String GetCurrentPath() const
 		{
-			return _current_path;
+			return _current_file_path;
 		}
 
 		ov::String GetFileName() const
@@ -90,7 +92,7 @@ namespace cfg
 
 		ov::String GetFullPath() const
 		{
-			return _full_path;
+			return _full_file_path;
 		}
 
 		ov::String ToString() const;
@@ -101,7 +103,9 @@ namespace cfg
 		void LoadFromXmlFile(const ov::String &file_name, const ov::String &root_name);
 		void LoadFromJson(const ov::String &file_name, const ov::String &root_name);
 
+		MAY_THROWS(std::shared_ptr<ConfigError>)
 		std::any GetValueFromXml(ValueType value_type, const ov::String &name, bool is_child, bool resolve_path, Json::Value *original_value) const;
+		MAY_THROWS(std::shared_ptr<ConfigError>)
 		std::any GetValueFromJson(ValueType value_type, const ov::String &name, bool is_child, bool resolve_path, OmitRule omit_rule, Json::Value *original_value) const;
 
 		DataType _type;
@@ -112,9 +116,9 @@ namespace cfg
 		ov::String _json_name;
 		Json::Value _json;
 
-		// _full_path = _current_path + _file_name
-		ov::String _full_path;
-		ov::String _current_path;
+		// _full_file_path = _current_file_path + _file_name
+		ov::String _full_file_path;
+		ov::String _current_file_path;
 		ov::String _file_name;
 	};
 }  // namespace cfg

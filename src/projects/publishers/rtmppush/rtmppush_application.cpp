@@ -55,7 +55,62 @@ bool RtmpPushApplication::DeleteStream(const std::shared_ptr<info::Stream> &info
 	return true;
 }
 
-void RtmpPushApplication::SessionController()
+void RtmpPushApplication::SessionUpdate(std::shared_ptr<RtmpPushStream> stream, std::shared_ptr<info::Push> userdata)
+{
+	// If there is no session, create a new file(record) session.
+	auto session = std::static_pointer_cast<RtmpPushSession>(stream->GetSession(userdata->GetSessionId()));
+	if (session == nullptr)
+	{
+		session = stream->CreateSession();
+		if (session == nullptr)
+		{
+			logte("Could not create session");
+			return;
+		}
+		userdata->SetSessionId(session->GetId());
+
+		session->SetPush(userdata);
+	}
+
+	if (userdata->GetEnable() == true && userdata->GetRemove() == false)
+	{
+		SessionStart(session);
+	}
+
+	if (userdata->GetEnable() == false || userdata->GetRemove() == true)
+	{
+		SessionStop(session);
+	}
+}
+
+void RtmpPushApplication::SessionUpdateByStream(std::shared_ptr<RtmpPushStream> stream, bool stopped)
+{
+	if (stream == nullptr)
+	{
+		return;
+	}
+
+	for (uint32_t i = 0; i < _userdata_sets.GetCount(); i++)
+	{
+		auto userdata = _userdata_sets.GetAt(i);
+		if (userdata == nullptr)
+			continue;
+
+		if (userdata->GetStreamName() != stream->GetName())
+			continue;
+
+		if (stopped == true)
+		{
+			userdata->SetState(info::Push::PushState::Ready);
+		}
+		else
+		{
+			SessionUpdate(stream, userdata);
+		}
+	}
+}
+
+void RtmpPushApplication::SessionUpdateByUser()
 {
 	for (uint32_t i = 0; i < _userdata_sets.GetCount(); i++)
 	{
@@ -63,34 +118,11 @@ void RtmpPushApplication::SessionController()
 		if (userdata == nullptr)
 			continue;
 
-		// Find a session related to Userdata.
+		// Find a stream related to Userdata.
 		auto stream = std::static_pointer_cast<RtmpPushStream>(GetStream(userdata->GetStreamName()));
 		if (stream != nullptr && stream->GetState() == pub::Stream::State::STARTED)
 		{
-			// If there is no session, create a new file(record) session.
-			auto session = std::static_pointer_cast<RtmpPushSession>(stream->GetSession(userdata->GetSessionId()));
-			if (session == nullptr)
-			{
-				session = stream->CreateSession();
-				if (session == nullptr)
-				{
-					logte("Could not create session");
-					continue;
-				}
-				userdata->SetSessionId(session->GetId());
-
-				session->SetPush(userdata);
-			}
-
-			if (userdata->GetEnable() == true && userdata->GetRemove() == false)
-			{
-				SessionStart(session);
-			}
-
-			if (userdata->GetEnable() == false || userdata->GetRemove() == true)
-			{
-				SessionStop(session);
-			}
+			SessionUpdate(stream, userdata);
 		}
 		else
 		{
@@ -99,10 +131,10 @@ void RtmpPushApplication::SessionController()
 
 		if (userdata->GetRemove() == true)
 		{
-			logtd("Remove userdata of file publiser. id(%s)", userdata->GetId().CStr());
-
 			if (stream != nullptr && userdata->GetSessionId() != 0)
+			{
 				stream->DeleteSession(userdata->GetSessionId());
+			}
 
 			_userdata_sets.DeleteByKey(userdata->GetId());
 		}
@@ -208,7 +240,7 @@ std::shared_ptr<ov::Error> RtmpPushApplication::PushStart(const std::shared_ptr<
 	}
 
 	// Validation check for protocol scheme
-	if (push->GetUrl().HasPrefix("rtmp://") == false)
+	if (push->GetUrl().HasPrefix("rtmp://") == false && push->GetUrl().HasPrefix("rtmps://") == false)
 	{
 		ov::String error_message = "Unsupported protocol";
 
@@ -227,7 +259,7 @@ std::shared_ptr<ov::Error> RtmpPushApplication::PushStart(const std::shared_ptr<
 
 	_userdata_sets.Set(push);
 
-	SessionController();
+	SessionUpdateByUser();
 
 	return ov::Error::CreateError(RtmpPushPublisher::ErrorCode::Success, "Success");
 }
@@ -259,7 +291,7 @@ std::shared_ptr<ov::Error> RtmpPushApplication::PushStop(const std::shared_ptr<i
 	userdata->SetEnable(false);
 	userdata->SetRemove(true);
 
-	SessionController();
+	SessionUpdateByUser();
 
 	return ov::Error::CreateError(RtmpPushPublisher::ErrorCode::Success, "Success");
 }
