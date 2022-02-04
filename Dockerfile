@@ -51,12 +51,9 @@ RUN \
 RUN \
         cd ${TEMP_DIR}/src && \
         mkdir -p ${PREFIX}/bin/origin_conf && \
-        mkdir -p ${PREFIX}/bin/edge_conf && \
         cp ./bin/RELEASE/OvenMediaEngine ${PREFIX}/bin/ && \
         cp ../conf/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
         cp ../conf/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
-        cp ../conf/Edge.xml ${PREFIX}/bin/edge_conf/Server.xml && \
-        cp ../conf/Logger.xml ${PREFIX}/bin/edge_conf/Logger.xml && \
         rm -rf ${DIR}
 
 FROM	base AS release

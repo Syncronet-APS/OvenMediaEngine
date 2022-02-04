@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 org=${ORG:-syncronet}
 name=ovenmediaengine
-tag=${OME_TAG:-latest}
+tag=${OME_TAG:-origin}
 
 if [ $# -gt 0 ]; then
     if [ "$1" == "attach" ]; then
