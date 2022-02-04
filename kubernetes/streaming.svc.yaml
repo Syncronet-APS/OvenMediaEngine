@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcp-streaming-service
+  namespace: default
+  labels:
+    tier: streaming
+spec:
+  type: LoadBalancer
+  ports:
+    - name: origin-input-rtmp
+      port: 1935
+      targetPort: 1935
+      protocol: "TCP"
+
+    - name: origin-output-ovt
+      port: 9000
+      targetPort: 9000
+      protocol: "TCP"
+
+    - name: edge-output-playlists
+      port: 80
+      targetPort: 8090
+      protocol: "TCP"
+
+    - name: edge-output-webrtc-signal
+      port: 3333
+      targetPort: 3334
+      protocol: "TCP"
+
+    - name: edge-output-webrtc-tcp-relay
+      port: 3478
+      targetPort: 3479
+      protocol: "TCP"
+
+  selector:
+    app: streaming
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: udp-streaming-service
+  namespace: default
+  labels:
+    tier: streaming
+spec:
+  type: LoadBalancer
+  ports:
+    - name: origin-output-srt
+      port: 9999
+      targetPort: 9999
+      protocol: "UDP"
+
+    - name: origin-output-playlists-mpegts-0
+      port: 4000
+      targetPort: 4000
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-1
+      port: 4001
+      targetPort: 4001
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-2
+      port: 4002
+      targetPort: 4002
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-3
+      port: 4003
+      targetPort: 4003
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-4
+      port: 4004
+      targetPort: 4004
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-5
+      port: 4005
+      targetPort: 4005
+      protocol: "UDP"
+
+    - name: origin-output-webrtc-ice-0
+      port: 10006
+      targetPort: 10006
+      protocol: "UDP"
+    - name: origin-output-webrtc-ice-1
+      port: 10007
+      targetPort: 10007
+      protocol: "UDP"
+    - name: origin-output-webrtc-ice-2
+      port: 10008
+      targetPort: 10008
+      protocol: "UDP"
+    - name: origin-output-webrtc-ice-3
+      port: 10009
+      targetPort: 10009
+      protocol: "UDP"
+    - name: origin-output-webrtc-ice-4
+      port: 10010
+      targetPort: 10010
+      protocol: "UDP"
+
+    - name: edge-output-webrtc-ice-0
+      port: 10000
+      targetPort: 10000
+      protocol: "UDP"
+    - name: edge-output-webrtc-ice-1
+      port: 10001
+      targetPort: 10001
+      protocol: "UDP"
+    - name: edge-output-webrtc-ice-2
+      port: 10002
+      targetPort: 10002
+      protocol: "UDP"
+    - name: edge-output-webrtc-ice-3
+      port: 10003
+      targetPort: 10003
+      protocol: "UDP"
+    - name: edge-output-webrtc-ice-4
+      port: 10004
+      targetPort: 10004
+      protocol: "UDP"
+    - name: edge-output-webrtc-ice-5
+      port: 10005
+      targetPort: 10005
+      protocol: "UDP"
+  selector:
+    app: streaming
