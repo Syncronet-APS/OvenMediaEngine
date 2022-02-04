@@ -10,6 +10,7 @@ ENV     TEMP_DIR=/tmp/ome
 
 ## Install libraries by package
 ENV     DEBIAN_FRONTEND=noninteractive
+RUN     sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//mirror:\/\/mirrors\.ubuntu\.com\/mirrors\.txt/' /etc/apt/sources.list
 RUN     apt-get update && apt-get install -y tzdata sudo curl git
 
 FROM    base AS dev-sources
