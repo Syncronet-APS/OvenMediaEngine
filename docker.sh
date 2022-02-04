@@ -11,7 +11,7 @@ if [ $# -gt 0 ]; then
     
     elif [ "$1" == "push" ]; then
         shift 1
-        docker push $org/$name $@
+        docker push $org/$name:$tag $@
     
     elif [ "$1" == "build" ]; then
         shift 1

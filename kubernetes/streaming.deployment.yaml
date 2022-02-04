@@ -15,32 +15,32 @@ spec:
     spec:
       containers:
         - name: ome-edge
-          image: syncronet/ovenmediaengine@edge
+          image: syncronet/ovenmediaengine:edge
           ports:
             - name: webrtc-signal
               containerPort: 3334
               protocol: "TCP"
             - name: webrtc-relay
-              containerport: 3479
-              protocol: "tcp"
+              containerPort: 3479
+              protocol: "TCP"
             - name: webrtc-ice-0
-              containerport: 10000
-              protocol: "udp"
+              containerPort: 10000
+              protocol: "UDP"
             - name: webrtc-ice-1
-              containerport: 10001
-              protocol: "udp"
+              containerPort: 10001
+              protocol: "UDP"
             - name: webrtc-ice-2
-              containerport: 10002
-              protocol: "udp"
+              containerPort: 10002
+              protocol: "UDP"
             - name: webrtc-ice-3
-              containerport: 10003
-              protocol: "udp"
+              containerPort: 10003
+              protocol: "UDP"
             - name: webrtc-ice-4
-              containerport: 10004
-              protocol: "udp"
+              containerPort: 10004
+              protocol: "UDP"
             - name: webrtc-ice-5
-              containerport: 10005
-              protocol: "udp"
+              containerPort: 10005
+              protocol: "UDP"
             - name: playlists
               containerPort: 8090
               protocol: "TCP"
