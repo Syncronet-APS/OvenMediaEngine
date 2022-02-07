@@ -1,6 +1,8 @@
 ARG     OME_VERSION=master
+ARG     BUILD_ENV=production
 ARG 	STRIP=TRUE
 ARG     GPU=FALSE
+ARG     MODE=origin
 
 FROM    ubuntu:20.04 AS base
 
@@ -40,15 +42,18 @@ RUN \
 RUN \
         cd ${TEMP_DIR}/src && \
         mkdir -p ${PREFIX}/bin/origin_conf && \
+        mkdir -p ${PREFIX}/bin/edge_conf && \
         cp ./bin/RELEASE/OvenMediaEngine ${PREFIX}/bin/ && \
         cp ../conf/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
         cp ../conf/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
+        cp ../conf/Edge.xml ${PREFIX}/bin/edge_conf/Server.xml && \
+        cp ../conf/Logger.xml ${PREFIX}/bin/edge_conf/Logger.xml && \
         rm -rf ${DIR}
 
 FROM	base AS release
 
 WORKDIR         /opt/ovenmediaengine/bin
-EXPOSE          8080/tcp 1935/tcp 3333/tcp 4000-4005/udp 10005-10010/udp 9000/tcp
+EXPOSE          80/tcp 8080/tcp 8090/tcp 1935/tcp 3333/tcp 3334/tcp 4000-4005/udp 10000-10010/udp 9000/tcp
 COPY            --from=build /opt/ovenmediaengine /opt/ovenmediaengine
 
-CMD             ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "origin_conf"]
+CMD             ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "$MODE_config"]

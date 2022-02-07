@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: ome-edge
-          image: syncronet/zome-edge:latest
+          image: syncronet/zome-ome
           env:
             - name: DEFAULT_ORIGIN_SERVER
               value: "10.128.142.175"

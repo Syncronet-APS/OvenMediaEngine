@@ -17,19 +17,8 @@ build:
   tagPolicy:
     gitCommit: {}
   artifacts:
-    - image: syncronet/zome-origin
+    - image: syncronet/zome-ome
       context: ../
-      docker:
-        dockerfile: origin.Dockerfile
-        noCache: false
-        squash: false
-
-    - image: syncronet/zome-edge
-      context: ../
-      docker:
-        dockerfile: edge.Dockerfile
-        noCache: false
-        squash: false
 
   local:
     push: true

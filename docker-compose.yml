@@ -4,8 +4,7 @@ services:
   origin:
     build:
       context: .
-      dockerfile: origin.Dockerfile
-    image: syncronet/zome-origin
+    image: syncronet/zome-ome
     ports:
       - "1935:1935/tcp"
       - "3333:3333/tcp"
@@ -30,8 +29,7 @@ services:
   edge:
     build:
       context: .
-      dockerfile: edge.Dockerfile
-    image: syncronet/zome-edge
+    image: syncronet/zome-ome
     ports:
       - "3334:3334/tcp"
       - "3479:3479/tcp"
