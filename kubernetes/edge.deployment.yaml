@@ -16,6 +16,7 @@ spec:
       containers:
         - name: ome-edge
           image: syncronet/zome-ome
+          command: ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "edge_conf"]
           env:
             - name: DEFAULT_ORIGIN_SERVER
               value: "10.128.142.175"

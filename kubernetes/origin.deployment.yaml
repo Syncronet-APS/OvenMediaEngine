@@ -16,6 +16,7 @@ spec:
       containers:
         - name: ome-origin
           image: syncronet/zome-ome
+          command: ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "origin_conf"]
           ports:
             - name: ovt
               containerPort: 9000
