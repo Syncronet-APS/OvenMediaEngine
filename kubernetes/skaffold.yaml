@@ -15,7 +15,7 @@ profiles:
         command: dev
 build:
   tagPolicy:
-    sha256: {}
+    gitCommit: {}
   artifacts:
     - image: syncronet/zome-origin
       context: ../
@@ -33,10 +33,10 @@ build:
 
   local:
     push: true
-    tryImportMissing: false
-    useDockerCLI: false
+    tryImportMissing: true
+    useDockerCLI: true
     useBuildkit: true
-    concurrency: 4
+    concurrency: 0
 deploy:
   kubectl:
     manifests:
