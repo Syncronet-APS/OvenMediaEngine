@@ -1,0 +1,46 @@
+# https://skaffold.dev/docs/references/yaml/
+apiVersion: skaffold/v2beta23
+kind: Config
+metadata:
+  name: skaffold
+profiles:
+  - name: prod
+    activation:
+      - kubeContext: lke51616-ctx
+        command: run
+
+  - name: dev
+    activation:
+      - kubeContext: minikube
+        command: dev
+build:
+  tagPolicy:
+    sha256: {}
+  artifacts:
+    - image: syncronet/zome-origin
+      context: ../
+      docker:
+        dockerfile: origin.Dockerfile
+        noCache: false
+        squash: false
+
+    - image: syncronet/zome-edge
+      context: ../
+      docker:
+        dockerfile: edge.Dockerfile
+        noCache: false
+        squash: false
+
+  local:
+    push: true
+    tryImportMissing: false
+    useDockerCLI: false
+    useBuildkit: true
+    concurrency: 4
+deploy:
+  kubectl:
+    manifests:
+      - origin.svc.yaml
+      - origin.deployment.yaml
+      - edge.svc.yaml
+      - edge.deployment.yaml

@@ -1,5 +1,4 @@
 ARG     OME_VERSION=master
-ARG     BUILD_ENV=production
 ARG 	STRIP=TRUE
 ARG     GPU=FALSE
 
@@ -13,22 +12,12 @@ ENV     DEBIAN_FRONTEND=noninteractive
 RUN     sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//mirror:\/\/mirrors\.ubuntu\.com\/mirrors\.txt/' /etc/apt/sources.list
 RUN     apt-get update && apt-get install -y tzdata sudo curl git
 
-FROM    base AS dev-sources
+FROM    base AS sources
 
 COPY ./ /tmp/ome
 WORKDIR /tmp/ome
 
-FROM base as production-sources
-
-## In production, download OvenMediaEngine from tarball
-RUN \
-        if [ "$DEV" = "FALSE" ] ; then \
-                mkdir -p ${TEMP_DIR} && \
-                cd ${TEMP_DIR} && \
-                curl -sLf https://github.com/Syncronet-APS/OvenMediaEngine/archive/${OME_VERSION}.tar.gz | tar -xz --strip-components=1 ; \
-        fi
-
-FROM ${BUILD_ENV}-sources as build
+FROM sources as build
 
 ## Install dependencies
 RUN \
@@ -51,18 +40,15 @@ RUN \
 RUN \
         cd ${TEMP_DIR}/src && \
         mkdir -p ${PREFIX}/bin/origin_conf && \
-        mkdir -p ${PREFIX}/bin/edge_conf && \
         cp ./bin/RELEASE/OvenMediaEngine ${PREFIX}/bin/ && \
         cp ../conf/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
         cp ../conf/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
-        cp ../conf/Edge.xml ${PREFIX}/bin/edge_conf/Server.xml && \
-        cp ../conf/Logger.xml ${PREFIX}/bin/edge_conf/Logger.xml && \
         rm -rf ${DIR}
 
 FROM	base AS release
 
 WORKDIR         /opt/ovenmediaengine/bin
-EXPOSE          80/tcp 8080/tcp 8090/tcp 1935/tcp 3333/tcp 3334/tcp 4000-4005/udp 10000-10010/udp 9000/tcp
+EXPOSE          8080/tcp 1935/tcp 3333/tcp 4000-4005/udp 10005-10010/udp 9000/tcp
 COPY            --from=build /opt/ovenmediaengine /opt/ovenmediaengine
-# Default run as Origin mode
+
 CMD             ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "origin_conf"]

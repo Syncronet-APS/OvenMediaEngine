@@ -4,7 +4,8 @@ services:
   origin:
     build:
       context: .
-    image: syncronet/ovenmediaengine:latest
+      dockerfile: origin.Dockerfile
+    image: syncronet/zome-origin
     ports:
       - "1935:1935/tcp"
       - "3333:3333/tcp"
@@ -29,7 +30,8 @@ services:
   edge:
     build:
       context: .
-    image: syncronet/ovenmediaengine:latest
+      dockerfile: edge.Dockerfile
+    image: syncronet/zome-edge
     ports:
       - "3334:3334/tcp"
       - "3479:3479/tcp"

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: origin
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: origin
+  template:
+    metadata:
+      labels:
+        app: origin
+    spec:
+      containers:
+        - name: ome-origin
+          image: syncronet/zome-edge:latest
+          ports:
+            - name: ovt
+              containerPort: 9000
+              protocol: "TCP"
+
+            - name: srt
+              containerPort: 9999
+              protocol: "UDP"
+
+            - name: rtmp
+              containerPort: 1935
+              protocol: "TCP"
+              
+            # - name: webrtc-signal
+            #   containerPort: 3333
+            #   protocol: "TCP"
+            # - name: webrtc-relay
+            #   containerPort: 3478
+            #   protocol: "TCP"
+            # - name: webrtc-ice-0
+            #   containerPort: 10006 
+            #   protocol: "UDP"
+            # - name: webrtc-ice-1
+            #   containerPort: 10007
+            #   protocol: "UDP"
+            # - name: webrtc-ice-2
+            #   containerPort: 10008
+            #   protocol: "UDP"
+            # - name: webrtc-ice-3
+            #   containerPort: 10009
+            #   protocol: "UDP"
+            # - name: webrtc-ice-4
+            #   containerPort: 10010
+            #   protocol: "UDP"
+
+            # - name: playlists
+            #   containerPort: 8080
+            #   protocol: "TCP"
+
+            # - name: playlists-0
+            #   containerPort: 4000
+            #   protocol: "UDP"
+            # - name: playlists-1
+            #   containerPort: 4001
+            #   protocol: "UDP"
+            # - name: playlists-2
+            #   containerPort: 4002
+            #   protocol: "UDP"
+            # - name: playlists-3
+            #   containerPort: 4003
+            #   protocol: "UDP"
+            # - name: playlists-4
+            #   containerPort: 4004
+            #   protocol: "UDP"
+            # - name: playlists-5
+            #   containerPort: 4005
+            #   protocol: "UDP"
+      imagePullSecrets:
+        - name: regcred

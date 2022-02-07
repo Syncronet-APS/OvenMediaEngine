@@ -42,12 +42,6 @@
 				<Port>${env:OME_ORIGIN_PORT:9000}</Port>
 				<WorkerCount>1</WorkerCount>
 			</OVT>
-			<HLS>
-				<Port>${env:OME_HLS_STREAM_PORT:8080}</Port>
-				<WorkerCount>1</WorkerCount>
-				<!-- If you want to use TLS, specify the TLS port -->
-				<!-- <TLSPort>443</TLSPort> -->
-			</HLS>
 		</Publishers>
 	</Bind>
 
@@ -94,6 +88,16 @@
 				</Enables>
 			</SignedPolicy>
 			-->
+			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/access-control/admission-webhooks -->
+			<!-- <AdmissionWebhooks>
+				<ControlServerUrl>${env:DEFAULT_API_SERVER:http://172.17.0.1:8000/hooks/ome/admission}</ControlServerUrl>
+				<SecretKey>1234</SecretKey>
+				<Timeout>3000</Timeout>
+				<Enables>
+					<Providers>rtmp,webrtc,srt</Providers>
+					<Publishers>webrtc,hls,dash,lldash</Publishers>
+				</Enables>
+			</AdmissionWebhooks> -->
 
 			<!-- Settings for applications -->
 			<Applications>
@@ -101,6 +105,8 @@
 					<Name>app</Name>
 					<!-- Application type (live/vod) -->
 					<Type>live</Type>
+
+					<!-- Output profiles provide a way to offer multiple different bandwidths -->
 					<OutputProfiles>
 						<OutputProfile>
 							<Name>bypass_stream</Name>
@@ -111,6 +117,14 @@
 								</Audio>
 								<Video>
 									<Bypass>true</Bypass>
+								</Video>
+								<Video>
+									<!-- vp8, h264 -->
+									<Codec>vp8</Codec>
+									<Width>1280</Width>
+									<Height>720</Height>
+									<Bitrate>2000000</Bitrate>
+									<Framerate>30.0</Framerate>
 								</Video>
 								<Audio>
 									<Codec>opus</Codec>
@@ -125,12 +139,12 @@
 							<OutputStreamName>${OriginStreamName}_fhd</OutputStreamName>
 							<Encodes>
 								<!-- <Video>
-                        <Codec>h264</Codec>
-                        <Width>1920</Width>
-                        <Height>1080</Height>
-                        <Bitrate>4500000</Bitrate>
-                        <Framerate>60.0</Framerate>
-                    </Video> -->
+														<Codec>h264</Codec>
+														<Width>1920</Width>
+														<Height>1080</Height>
+														<Bitrate>4500000</Bitrate>
+														<Framerate>60.0</Framerate>
+													</Video> -->
 								<Video>
 									<Codec>h264</Codec>
 									<Bitrate>1045000</Bitrate>
@@ -152,12 +166,12 @@
 							<OutputStreamName>${OriginStreamName}_hd</OutputStreamName>
 							<Encodes>
 								<!-- <Video>
-                        <Codec>h264</Codec>
-                        <Width>1280</Width>
-                        <Height>720</Height>
-                        <Bitrate>2000000</Bitrate>
-                        <Framerate>30.0</Framerate>
-                    </Video> -->
+														<Codec>h264</Codec>
+														<Width>1280</Width>
+														<Height>720</Height>
+														<Bitrate>2000000</Bitrate>
+														<Framerate>30.0</Framerate>
+													</Video> -->
 								<Video>
 									<Codec>h264</Codec>
 									<Bitrate>1024000</Bitrate>
@@ -195,20 +209,17 @@
 						</OutputProfile>
 					</OutputProfiles>
 					<Providers>
-						<OVT />
 						<RTMP />
 					</Providers>
 					<Publishers>
 						<AppWorkerCount>1</AppWorkerCount>
-						<StreamWorkerCount>8</StreamWorkerCount>
+						<StreamWorkerCount>4</StreamWorkerCount>
 						<OVT />
-						<HLS>
-							<SegmentDuration>5</SegmentDuration>
-							<SegmentCount>3</SegmentCount>
-							<CrossDomains>
-								<Url>*</Url>
-							</CrossDomains>
-						</HLS>
+						<FILE>
+							<RootPath>/mnt/recordings</RootPath>
+							<FilePath>/${VirtualHost}/${Application}/${Stream}/${StartTime:YYYYMMDDhhmmss}_${EndTime:YYYYMMDDhhmmss}.ts</FilePath>
+							<InfoPath>/${VirtualHost}/${Application}/${Stream}.xml</InfoPath>
+						</FILE>
 					</Publishers>
 				</Application>
 			</Applications>

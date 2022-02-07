@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <Server version="8">
 	<Name>OvenMediaEngine</Name>
@@ -28,11 +28,11 @@
 		-->
 		<Providers>
 			<!-- Pull providers -->
-			<RTSPC>
+			<!-- <RTSPC>
 				<WorkerCount>1</WorkerCount>
-			</RTSPC>
+			</RTSPC> -->
 			<OVT>
-				<WorkerCount>1</WorkerCount>
+				<WorkerCount>4</WorkerCount>
 			</OVT>
 		</Providers>
 
@@ -80,7 +80,7 @@
 			<Name>default</Name>
 			<!--Distribution is a value that can be used when grouping the same vhost distributed across multiple servers. This value is output to the events log, so you can use it to aggregate statistics. -->
 			<Distribution>ovenmediaengine.com</Distribution>
-			
+
 			<!-- Settings for multi ip/domain and TLS -->
 			<Host>
 				<Names>
@@ -100,7 +100,7 @@
 				</TLS>
 				-->
 			</Host>
-			
+
 			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/signedpolicy
 
 			<SignedPolicy>
@@ -144,13 +144,42 @@
 				<Origin>
 					<Location>/</Location>
 					<Pass>
-						<Scheme>ovt</Scheme>
+						<Scheme>OVT</Scheme>
 						<Urls>
 							<Url>${env:DEFAULT_ORIGIN_SERVER:}:${env:DEFAULT_ORIGIN_PORT:9000}/</Url>
 						</Urls>
 					</Pass>
 				</Origin>
 			</Origins>
+
+			<!-- Settings for applications -->
+			<Applications>
+				<Application>
+					<Name>app</Name>
+					<!-- Application type (live/vod) -->
+					<Type>live</Type>
+					<Providers>
+						<!-- You have to enable the OVT provider 
+						because you used the ovt scheme for configuring Origin. -->
+						<OVT />
+						<!-- If you set RTSP into Scheme, 
+						you have to enable RTSPPull provider -->
+						<!-- <RTSPPull /> -->
+					</Providers>
+
+					<Publishers>
+						<AppWorkerCount>1</AppWorkerCount>
+						<StreamWorkerCount>8</StreamWorkerCount>
+						<HLS>
+							<SegmentDuration>5</SegmentDuration>
+							<SegmentCount>3</SegmentCount>
+							<CrossDomains>
+								<Url>*</Url>
+							</CrossDomains>
+						</HLS>
+					</Publishers>
+				</Application>
+			</Applications>
 		</VirtualHost>
 	</VirtualHosts>
 </Server>
