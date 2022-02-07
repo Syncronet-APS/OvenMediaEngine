@@ -32,7 +32,7 @@
 				<WorkerCount>1</WorkerCount>
 			</RTSPC> -->
 			<OVT>
-				<WorkerCount>4</WorkerCount>
+				<WorkerCount>1</WorkerCount>
 			</OVT>
 		</Providers>
 
