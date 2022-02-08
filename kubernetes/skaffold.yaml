@@ -15,15 +15,15 @@ profiles:
         command: dev
 build:
   tagPolicy:
-    gitCommit: {}
+    sha256: {}
   artifacts:
     - image: syncronet/zome-ome
       context: ../
 
   local:
     push: true
-    tryImportMissing: true
-    useDockerCLI: true
+    tryImportMissing: false
+    useDockerCLI: false
     useBuildkit: true
     concurrency: 0
 deploy:
