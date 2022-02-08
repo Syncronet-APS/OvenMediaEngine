@@ -4,7 +4,7 @@ metadata:
   name: edge
   namespace: default
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: edge
@@ -17,6 +17,13 @@ spec:
         - name: ome-edge
           image: syncronet/zome-ome
           command: ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "edge_conf"]
+          resources:
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+            requests:
+              cpu: "0.5"
+              memory: "1Gi"
           env:
             - name: DEFAULT_ORIGIN_SERVER
               value: "10.128.142.175"

@@ -31,5 +31,7 @@ deploy:
     manifests:
       - origin.svc.yaml
       - origin.deployment.yaml
+      - origin.autoscale.yaml
       - edge.svc.yaml
       - edge.deployment.yaml
+      - edge.autoscale.yaml
