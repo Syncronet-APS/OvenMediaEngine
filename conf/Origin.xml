@@ -118,8 +118,7 @@
 								<Video>
 									<Bypass>true</Bypass>
 								</Video>
-								<Video>
-									<!-- vp8, h264 -->
+								<!-- <Video>
 									<Codec>vp8</Codec>
 									<Width>1280</Width>
 									<Height>720</Height>
@@ -131,20 +130,13 @@
 									<Bitrate>128000</Bitrate>
 									<Samplerate>48000</Samplerate>
 									<Channel>2</Channel>
-								</Audio>
+								</Audio> -->
 							</Encodes>
 						</OutputProfile>
-						<OutputProfile>
+						<!-- <OutputProfile>
 							<Name>fhd_stream</Name>
 							<OutputStreamName>${OriginStreamName}_fhd</OutputStreamName>
 							<Encodes>
-								<!-- <Video>
-														<Codec>h264</Codec>
-														<Width>1920</Width>
-														<Height>1080</Height>
-														<Bitrate>4500000</Bitrate>
-														<Framerate>60.0</Framerate>
-													</Video> -->
 								<Video>
 									<Codec>h264</Codec>
 									<Bitrate>1045000</Bitrate>
@@ -159,19 +151,12 @@
 									<Channel>2</Channel>
 								</Audio>
 							</Encodes>
-						</OutputProfile>
+						</OutputProfile> -->
 
 						<OutputProfile>
 							<Name>hd_stream</Name>
 							<OutputStreamName>${OriginStreamName}_hd</OutputStreamName>
 							<Encodes>
-								<!-- <Video>
-														<Codec>h264</Codec>
-														<Width>1280</Width>
-														<Height>720</Height>
-														<Bitrate>2000000</Bitrate>
-														<Framerate>30.0</Framerate>
-													</Video> -->
 								<Video>
 									<Codec>h264</Codec>
 									<Bitrate>1024000</Bitrate>

@@ -77,7 +77,7 @@
 		<!-- You can use wildcard like this to include multiple XMLs -->
 		<VirtualHost include="VHost*.xml" />
 		<VirtualHost>
-			<Name>default</Name>
+			<Name>app</Name>
 			<!--Distribution is a value that can be used when grouping the same vhost distributed across multiple servers. This value is output to the events log, so you can use it to aggregate statistics. -->
 			<Distribution>ovenmediaengine.com</Distribution>
 
@@ -142,11 +142,11 @@
 				</Origin>
 				-->
 				<Origin>
-					<Location>/</Location>
+					<Location>/app/</Location>
 					<Pass>
 						<Scheme>OVT</Scheme>
 						<Urls>
-							<Url>${env:DEFAULT_ORIGIN_SERVER:}:${env:DEFAULT_ORIGIN_PORT:9000}/</Url>
+							<Url>${env:DEFAULT_ORIGIN_SERVER:}:${env:DEFAULT_ORIGIN_PORT:9000}/app/</Url>
 						</Urls>
 					</Pass>
 				</Origin>
