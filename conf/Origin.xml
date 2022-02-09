@@ -17,14 +17,14 @@
 	<!-- Settings for the ports to bind -->
 	<Bind>
 		<!-- Enable this configuration if you want to use API Server -->
-		<!--
+<!-- 
 		<Managers>
 			<API>
 				<Port>${env:OME_API_PORT:8081}</Port>
 				<WorkerCount>1</WorkerCount>
 			</API>
-		</Managers>
-		-->
+		</Managers> -->
+
 		<Providers>
 			<OVT>
 				<WorkerCount>1</WorkerCount>
@@ -34,6 +34,10 @@
 				<Port>${env:OME_RTMP_PROV_PORT:1935}</Port>
 				<WorkerCount>1</WorkerCount>
 			</RTMP>
+			<SRT>
+				<Port>${env:OME_SRT_PROV_PORT:9999}</Port>
+				<WorkerCount>1</WorkerCount>
+			</SRT>
 		</Providers>
 
 		<Publishers>
@@ -194,6 +198,7 @@
 						</OutputProfile>
 					</OutputProfiles>
 					<Providers>
+						<SRT />
 						<RTMP />
 					</Providers>
 					<Publishers>
