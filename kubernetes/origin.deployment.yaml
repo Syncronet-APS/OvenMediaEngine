@@ -17,6 +17,9 @@ spec:
         - name: ome-origin
           image: syncronet/zome-ome
           command: ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "origin_conf"]
+          env:
+            - name: DEFAULT_API_SERVER
+              value: https://staging.zometv.com/hooks/ome/admission
           resources:
             limits:
               cpu: "4"

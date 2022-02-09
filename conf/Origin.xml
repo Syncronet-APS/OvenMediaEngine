@@ -89,7 +89,7 @@
 			</SignedPolicy>
 			-->
 			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/access-control/admission-webhooks -->
-			<!-- <AdmissionWebhooks>
+			<AdmissionWebhooks>
 				<ControlServerUrl>${env:DEFAULT_API_SERVER:http://172.17.0.1:8000/hooks/ome/admission}</ControlServerUrl>
 				<SecretKey>1234</SecretKey>
 				<Timeout>3000</Timeout>
@@ -97,7 +97,7 @@
 					<Providers>rtmp,webrtc,srt</Providers>
 					<Publishers>webrtc,hls,dash,lldash</Publishers>
 				</Enables>
-			</AdmissionWebhooks> -->
+			</AdmissionWebhooks>
 
 			<!-- Settings for applications -->
 			<Applications>
