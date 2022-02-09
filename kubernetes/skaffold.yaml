@@ -29,6 +29,7 @@ build:
 deploy:
   kubectl:
     manifests:
+      - nfs.recordings.pvc.yaml
       - nfs-server.service.yaml
       - nfs-server.deployment.yaml
       - nfs.pv.yaml

@@ -6,11 +6,12 @@ metadata:
 spec:
   replicas: 1
   selector:
-    role: nfs-server
+    matchLabels:
+      app: nfs-server
   template:
     metadata:
       labels:
-        role: nfs-server
+        app: nfs-server
     spec:
       containers:
       - name: nfs-server
