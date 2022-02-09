@@ -24,6 +24,10 @@ spec:
             requests:
               cpu: "0.5"
               memory: "4Gi"
+          volumeMounts:
+              # name must match the volume name below
+              - name: nfs
+                mountPath: "/mnt/recordings"
           ports:
             - name: ovt
               containerPort: 9000
@@ -83,3 +87,7 @@ spec:
             #   protocol: "UDP"
       imagePullSecrets:
         - name: regcred
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs
