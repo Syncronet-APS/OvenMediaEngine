@@ -3,6 +3,7 @@ apiVersion: v1
 metadata:
   name: nfs-server
 spec:
+  clusterIP: 10.128.85.175
   ports:
     - name: nfs
       port: 2049

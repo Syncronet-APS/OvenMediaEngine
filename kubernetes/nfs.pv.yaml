@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: nfs-server.default.svc.cluster.local
+    server: 10.128.85.175
     path: "/"
   mountOptions:
     - nfsvers=4.2
