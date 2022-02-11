@@ -38,6 +38,15 @@
 				<Port>${env:OME_SRT_PROV_PORT:9999}</Port>
 				<WorkerCount>1</WorkerCount>
 			</SRT>
+			<WebRTC>
+				<Signalling>
+					<Port>${env:OME_SIGNALLING_PORT:3333}</Port>
+				</Signalling>
+				<IceCandidates>
+					<TcpRelay>*:3478</TcpRelay>
+					<IceCandidate>*:10006-10010/udp</IceCandidate>
+				</IceCandidates>
+			</WebRTC>
 		</Providers>
 
 		<Publishers>
@@ -220,6 +229,7 @@
 					<Providers>
 						<SRT />
 						<RTMP />
+						<WebRTC />
 					</Providers>
 					<Publishers>
 						<AppWorkerCount>1</AppWorkerCount>

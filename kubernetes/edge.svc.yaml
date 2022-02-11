@@ -14,12 +14,12 @@ spec:
       protocol: "TCP"
 
     - name: edge-output-webrtc-signal
-      port: 3333
+      port: 3334
       targetPort: 3334
       protocol: "TCP"
 
     - name: edge-output-webrtc-tcp-relay
-      port: 3478
+      port: 3479
       targetPort: 3479
       protocol: "TCP"
 

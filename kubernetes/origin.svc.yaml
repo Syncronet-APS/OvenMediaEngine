@@ -12,6 +12,14 @@ spec:
       port: 1935
       targetPort: 1935
       protocol: "TCP"
+    - name: origin-input-webrtc-signal
+      port: 3333
+      targetPort: 3333
+      protocol: "TCP"
+    - name: origin-output-webrtc-tcp-relay
+      port: 3478
+      targetPort: 3478
+      protocol: "TCP"
     - name: origin-api
       port: 8081
       targetPort: 8081
