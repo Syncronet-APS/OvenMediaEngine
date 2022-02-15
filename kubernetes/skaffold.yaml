@@ -1,0 +1,42 @@
+# https://skaffold.dev/docs/references/yaml/
+apiVersion: skaffold/v2beta23
+kind: Config
+metadata:
+  name: skaffold
+profiles:
+  - name: prod
+    activation:
+      - kubeContext: lke51616-ctx
+        command: run
+
+  - name: dev
+    activation:
+      - kubeContext: minikube
+        command: dev
+build:
+  tagPolicy:
+    sha256: {}
+  artifacts:
+    - image: syncronet/zome-ome
+      context: ../
+
+  local:
+    push: true
+    tryImportMissing: false
+    useDockerCLI: false
+    useBuildkit: true
+    concurrency: 0
+deploy:
+  kubectl:
+    manifests:
+      # - nfs.recordings.pvc.yaml
+      # - nfs-server.service.yaml
+      # - nfs-server.deployment.yaml
+      # - nfs.pv.yaml
+      # - nfs.pvc.yaml
+      - origin.svc.yaml
+      - origin.deployment.yaml
+      # - origin.autoscale.yaml
+      - edge.svc.yaml
+      - edge.deployment.yaml
+      # - edge.autoscale.yaml

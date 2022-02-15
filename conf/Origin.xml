@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Server version="8">
+	<Name>OvenMediaEngine</Name>
+	<!-- Host type (origin/edge) -->
+	<Type>origin</Type>
+	<!-- Specify IP address to bind (* means all IPs) -->
+	<IP>*</IP>
+	<PrivacyProtection>false</PrivacyProtection>
+	<!-- 
+	To get the public IP address(mapped address of stun) of the local server. 
+	This is useful when OME cannot obtain a public IP from an interface, such as AWS or docker environment. 
+	If this is successful, you can use ${PublicIP} in your settings.
+	-->
+	<StunServer>stun.l.google.com:19302</StunServer>
+
+	<!-- Settings for the ports to bind -->
+	<Bind>
+		<!-- Enable this configuration if you want to use API Server -->
+
+		<Managers>
+			<API>
+				<Port>${env:OME_API_PORT:8081}</Port>
+				<WorkerCount>1</WorkerCount>
+			</API>
+		</Managers>
+
+		<Providers>
+			<OVT>
+				<WorkerCount>1</WorkerCount>
+			</OVT>
+			<!-- Push providers -->
+			<RTMP>
+				<Port>${env:OME_RTMP_PROV_PORT:1935}</Port>
+				<WorkerCount>1</WorkerCount>
+			</RTMP>
+			<SRT>
+				<Port>${env:OME_SRT_PROV_PORT:9999}</Port>
+				<WorkerCount>1</WorkerCount>
+			</SRT>
+			<WebRTC>
+				<Signalling>
+					<Port>${env:OME_SIGNALLING_PORT:3333}</Port>
+				</Signalling>
+				<IceCandidates>
+					<TcpRelay>172.105.146.93:3478</TcpRelay>
+					<IceCandidate>45.79.249.202:10006-10010/udp</IceCandidate>
+					<IceCandidate>45.79.249.213:10006-10010/udp</IceCandidate>
+					<IceCandidate>139.177.182.183:10006-10010/udp</IceCandidate>
+					<IceCandidate>45.79.248.155:10006-10010/udp</IceCandidate>
+					<IceCandidate>*:10006-10010/udp</IceCandidate>
+				</IceCandidates>
+			</WebRTC>
+		</Providers>
+
+		<Publishers>
+			<!-- The OVT is protocol for ORIGIN-EDGE -->
+			<OVT>
+				<Port>${env:OME_ORIGIN_PORT:9000}</Port>
+				<WorkerCount>1</WorkerCount>
+			</OVT>
+		</Publishers>
+	</Bind>
+
+	<Managers>
+		<Host>
+			<Names>
+				<Name>*</Name>
+			</Names>
+			<!--
+				If you want to set up TLS, set it up by referring to the following:
+			<TLS>
+				<CertPath>airensoft_com.crt</CertPath>
+				<KeyPath>airensoft_com.key</KeyPath>
+				<ChainCertPath>airensoft_com_chain.crt</ChainCertPath>
+			</TLS>
+			-->
+		</Host>
+
+		<API>
+			<AccessToken>your_access_token</AccessToken>
+		</API>
+	</Managers>
+
+	<VirtualHosts>
+		<!--
+			You can include multiple XML files by doing the following:
+			<VirtualHost include="sites-enabled/*.xml" />
+		-->
+		<VirtualHost include="VHost*.xml" />
+		<VirtualHost>
+			<Name>app</Name>
+			<!--Distribution is a value that can be used when grouping the same vhost distributed across multiple servers. This value is output to the events log, so you can use it to aggregate statistics. -->
+			<Distribution>ovenmediaengine.com</Distribution>
+
+			<!-- Settings for multi ip/domain and TLS -->
+			<Host>
+				<Names>
+					<!-- Host names
+						<Name>stream1.airensoft.com</Name>
+						<Name>stream2.airensoft.com</Name>
+						<Name>*.sub.airensoft.com</Name>
+						<Name>192.168.0.1</Name>
+					-->
+					<Name>*</Name>
+				</Names>
+				<!--
+				<TLS>
+					<CertPath>path/to/file.crt</CertPath>
+					<KeyPath>path/to/file.key</KeyPath>
+					<ChainCertPath>path/to/file.crt</ChainCertPath>
+				</TLS>
+				-->
+			</Host>
+
+			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/signedpolicy
+			<SignedPolicy>
+				<PolicyQueryKeyName>policy</PolicyQueryKeyName>
+				<SignatureQueryKeyName>signature</SignatureQueryKeyName>
+				<SecretKey>aKq#1kj</SecretKey>
+
+				<Enables>
+					<Providers>rtmp,webrtc,srt</Providers>
+					<Publishers>webrtc,hls,dash,lldash</Publishers>
+				</Enables>
+			</SignedPolicy>
+			-->
+			<!-- Refer https://airensoft.gitbook.io/ovenmediaengine/access-control/admission-webhooks -->
+			<AdmissionWebhooks>
+				<ControlServerUrl>${env:DEFAULT_API_SERVER:http://172.17.0.1:8000/hooks/ome/admission}</ControlServerUrl>
+				<SecretKey>1234</SecretKey>
+				<Timeout>3000</Timeout>
+				<Enables>
+					<Providers>rtmp,webrtc,srt</Providers>
+					<Publishers>webrtc,hls,dash,lldash</Publishers>
+				</Enables>
+			</AdmissionWebhooks>
+
+			<!-- Settings for applications -->
+			<Applications>
+				<Application>
+					<Name>app</Name>
+					<!-- Application type (live/vod) -->
+					<Type>live</Type>
+
+					<!-- Output profiles provide a way to offer multiple different bandwidths -->
+					<OutputProfiles>
+						<OutputProfile>
+							<Name>bypass_stream</Name>
+							<OutputStreamName>${OriginStreamName}</OutputStreamName>
+							<Encodes>
+								<Audio>
+									<Bypass>true</Bypass>
+								</Audio>
+								<Video>
+									<Bypass>true</Bypass>
+								</Video>
+								<Video>
+									<!-- vp8, h264 -->
+									<Codec>vp8</Codec>
+									<Width>1280</Width>
+									<Height>720</Height>
+									<Bitrate>2000000</Bitrate>
+									<Framerate>30.0</Framerate>
+								</Video>
+								<Audio>
+									<Codec>opus</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+							</Encodes>
+						</OutputProfile>
+						<!-- <OutputProfile>
+							<Name>fhd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_fhd</OutputStreamName>
+							<Encodes>
+								<Video>
+									<Codec>h264</Codec>
+									<Bitrate>1045000</Bitrate>
+									<Framerate>60</Framerate>
+									<Width>1920</Width>
+									<Height>1080</Height>
+								</Video>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>240000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+							</Encodes>
+						</OutputProfile> -->
+
+						<OutputProfile>
+							<Name>hd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_hd</OutputStreamName>
+							<Encodes>
+								<Video>
+									<Codec>h264</Codec>
+									<Bitrate>1024000</Bitrate>
+									<Framerate>30</Framerate>
+									<Width>1280</Width>
+									<Height>720</Height>
+								</Video>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>441000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+								<!-- <Video>
+									<Codec>vp8</Codec>
+									<Width>1280</Width>
+									<Height>720</Height>
+									<Bitrate>2000000</Bitrate>
+									<Framerate>30.0</Framerate>
+								</Video>
+								<Audio>
+									<Codec>opus</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio> -->
+							</Encodes>
+						</OutputProfile>
+
+						<OutputProfile>
+							<Name>sd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_sd</OutputStreamName>
+							<Encodes>
+								<Audio>
+									<Codec>aac</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio>
+								<Video>
+									<Codec>h264</Codec>
+									<Width>640</Width>
+									<Height>360</Height>
+									<Bitrate>500000</Bitrate>
+									<Framerate>30</Framerate>
+								</Video>
+								<!-- <Video>
+									<Codec>vp8</Codec>
+									<Width>640</Width>
+									<Height>360</Height>
+									<Bitrate>500000</Bitrate>
+									<Framerate>30.0</Framerate>
+								</Video>
+								<Audio>
+									<Codec>opus</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio> -->
+							</Encodes>
+						</OutputProfile>
+					</OutputProfiles>
+					<Providers>
+						<SRT />
+						<RTMP />
+						<WebRTC />
+					</Providers>
+					<Publishers>
+						<AppWorkerCount>1</AppWorkerCount>
+						<StreamWorkerCount>4</StreamWorkerCount>
+						<OVT />
+						<FILE>
+							<RootPath>/mnt/recordings</RootPath>
+							<FilePath>/${VirtualHost}/${Application}/${Stream}/${StartTime:YYYYMMDDhhmmss}_${EndTime:YYYYMMDDhhmmss}.ts</FilePath>
+							<InfoPath>/${VirtualHost}/${Application}/${Stream}.xml</InfoPath>
+						</FILE>
+					</Publishers>
+				</Application>
+			</Applications>
+		</VirtualHost>
+	</VirtualHosts>
+</Server>

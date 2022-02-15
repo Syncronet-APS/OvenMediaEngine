@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: origin
+  namespace: default
+  labels:
+    tier: streaming
+spec:
+  type: LoadBalancer
+  ports:
+    - name: origin-input-rtmp
+      port: 1935
+      targetPort: 1935
+      protocol: "TCP"
+    - name: origin-input-webrtc-signal
+      port: 3333
+      targetPort: 3333
+      protocol: "TCP"
+    - name: origin-output-webrtc-tcp-relay
+      port: 3478
+      targetPort: 3478
+      protocol: "TCP"
+    - name: origin-api
+      port: 8081
+      targetPort: 8081
+      protocol: "TCP"
+  selector:
+    app: origin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: origin-ice
+  namespace: default
+  labels:
+    tier: streaming
+spec:
+  type: NodePort
+  ports:
+    - name: webrtc-ice-0
+      protocol: "UDP"
+      port: 10006
+      targetPort: 10006
+    - name: webrtc-ice-1
+      protocol: "UDP"
+      port: 10007
+      targetPort: 10007
+    - name: webrtc-ice-2
+      protocol: "UDP"
+      port: 10008
+      targetPort: 10008
+    - name: webrtc-ice-3
+      protocol: "UDP"
+      port: 10009
+      targetPort: 10009
+    - name: webrtc-ice-4
+      protocol: "UDP"
+      port: 10010
+      targetPort: 10010
+  selector:
+    app: origin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ovt
+  namespace: default
+  labels:
+    tier: streaming
+spec:
+  clusterIP: 10.128.142.175
+  type: ClusterIP
+  ports:
+    - name: origin-output-ovt
+      port: 9000
+      targetPort: 9000
+      protocol: "TCP"
+  selector:
+    app: origin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: srt
+  namespace: default
+  labels:
+    tier: streaming
+spec:
+  clusterIP: 10.128.52.21
+  type: ClusterIP
+  ports:
+    - name: origin-output-srt
+      port: 9999
+      targetPort: 9999
+      protocol: "UDP"
+  selector:
+    app: origin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mpeg-ts
+  namespace: default
+  labels:
+    tier: streaming
+spec:
+  type: ClusterIP
+  ports:
+    - name: origin-output-playlists-mpegts-0
+      port: 4000
+      targetPort: 4000
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-1
+      port: 4001
+      targetPort: 4001
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-2
+      port: 4002
+      targetPort: 4002
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-3
+      port: 4003
+      targetPort: 4003
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-4
+      port: 4004
+      targetPort: 4004
+      protocol: "UDP"
+    - name: origin-output-playlists-mpegts-5
+      port: 4005
+      targetPort: 4005
+      protocol: "UDP"
+  selector:
+    app: origin
