@@ -117,6 +117,7 @@ int main(int argc, char *argv[])
 	INIT_MODULE(lldash_publisher, "Low-Latency MPEG-DASH Publisher", CmafPublisher::Create(*server_config, media_router));
 	INIT_MODULE(ovt_publisher, "OVT Publisher", OvtPublisher::Create(*server_config, media_router));
 	INIT_MODULE(file_publisher, "File Publisher", FilePublisher::Create(*server_config, media_router));
+	INIT_MODULE(mpegtspush_publisher, "MpegtsPush Publisher", MpegtsPushPublisher::Create(*server_config, media_router));
 	INIT_MODULE(rtmppush_publisher, "RtmpPush Publisher", RtmpPushPublisher::Create(*server_config, media_router));
 	INIT_MODULE(thumbnail_publisher, "Thumbnail Publisher", ThumbnailPublisher::Create(*server_config, media_router));
 
@@ -259,9 +260,9 @@ static ov::Daemon::State Initialize(int argc, char *argv[], ParseOption *parse_o
 
 		return ov::Daemon::State::CHILD_SUCCESS;
 	}
-	catch (std::shared_ptr<cfg::ConfigError> &error)
+	catch (const cfg::ConfigError &error)
 	{
-		logte("An error occurred while load config: %s", error->ToString().CStr());
+		logte("An error occurred while load config: %s", error.What());
 	}
 
 	return ov::Daemon::State::CHILD_FAIL;
@@ -273,7 +274,7 @@ static void CheckKernelVersion()
 
 	if (::uname(&name) != 0)
 	{
-		logte("Could not obtain utsname using uname(): %s", ov::Error::CreateErrorFromErrno()->ToString().CStr());
+		logte("Could not obtain utsname using uname(): %s", ov::Error::CreateErrorFromErrno()->What());
 		return;
 	}
 
