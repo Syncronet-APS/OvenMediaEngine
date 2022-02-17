@@ -25,11 +25,16 @@ namespace api
 		bool Start(const std::shared_ptr<const cfg::Server> &server_config);
 		bool Stop();
 
+		MAY_THROWS(http::HttpError)
 		void CreateVHost(const cfg::vhost::VirtualHost &vhost_config);
+		MAY_THROWS(http::HttpError)
 		void DeleteVHost(const info::Host &host_info);
 
 	protected:
 		bool PrepareHttpServers(const ov::String &server_ip, const cfg::mgr::Managers &managers, const cfg::bind::mgr::API &api_bind_config);
+
+		void SetupCors(const cfg::mgr::api::API &api_config);
+		bool SetupAccessToken(const cfg::mgr::api::API &api_config);
 
 		std::shared_ptr<http::svr::RequestInterceptor> CreateInterceptor();
 

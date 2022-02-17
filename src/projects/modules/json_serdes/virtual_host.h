@@ -8,16 +8,12 @@
 //==============================================================================
 #pragma once
 
-#include <modules/http/server/http_server.h>
-#include <monitoring/monitoring.h>
+#include <config/config.h>
 
 namespace serdes
 {
-	Json::Value JsonFromOutputProfile(const cfg::vhost::app::oprf::OutputProfile &output_profile);
-
 	MAY_THROWS(cfg::ConfigError)
-	Json::Value JsonFromApplication(const std::shared_ptr<const mon::ApplicationMetrics> &application);
-
+	void VirtualHostFromJson(const Json::Value &json_value, cfg::vhost::VirtualHost *vhost_config);
 	MAY_THROWS(cfg::ConfigError)
-	void ApplicationFromJson(const Json::Value &json_value, cfg::vhost::app::Application *app_config);
+	Json::Value JsonFromVirtualHost(const cfg::vhost::VirtualHost &vhost_config);
 }  // namespace serdes

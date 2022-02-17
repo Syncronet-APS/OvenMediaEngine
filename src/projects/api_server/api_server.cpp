@@ -122,34 +122,21 @@ namespace api
 		return false;
 	}
 
-	bool Server::Start(const std::shared_ptr<const cfg::Server> &server_config)
+	void Server::SetupCors(const cfg::mgr::api::API &api_config)
 	{
-		// API Server configurations
-		const auto &managers = server_config->GetManagers();
-		const auto &api_config = managers.GetApi();
+		bool is_cors_parsed;
+		auto cross_domains = api_config.GetCrossDomainList(&is_cors_parsed);
 
-		// Port configurations
-		const auto &api_bind_config = server_config->GetBind().GetManagers().GetApi();
-
-		if (api_bind_config.IsParsed() == false)
+		if (is_cors_parsed)
 		{
-			logti("API Server is disabled");
-			return true;
+			// API server doesn't have VHost, so use dummy VHost
+			auto vhost_app_name = info::VHostAppName::InvalidVHostAppName();
+			_cors_manager.SetCrossDomains(vhost_app_name, cross_domains);
 		}
+	}
 
-		// CORS
-		{
-			bool is_cors_parsed;
-			auto cross_domains = api_config.GetCrossDomainList(&is_cors_parsed);
-
-			if (is_cors_parsed)
-			{
-				// API server doesn't have VHost, so use dummy VHost
-				auto vhost_app_name = info::VHostAppName::InvalidVHostAppName();
-				_cors_manager.SetCrossDomains(vhost_app_name, cross_domains);
-			}
-		}
-
+	bool Server::SetupAccessToken(const cfg::mgr::api::API &api_config)
+	{
 		_access_token = api_config.GetAccessToken();
 
 		if (_access_token.IsEmpty())
@@ -162,7 +149,31 @@ namespace api
 #endif	// DEBUG
 		}
 
-		return PrepareHttpServers(server_config->GetIp(), managers, api_bind_config);
+		return true;
+	}
+
+	bool Server::Start(const std::shared_ptr<const cfg::Server> &server_config)
+	{
+		// API Server configurations
+		const auto &managers_config = server_config->GetManagers();
+		const auto &api_config = managers_config.GetApi();
+
+		// Port configurations
+		const auto &api_bind_config = server_config->GetBind().GetManagers().GetApi();
+
+		if (api_bind_config.IsParsed() == false)
+		{
+			logti("API Server is disabled");
+			return true;
+		}
+
+		SetupCors(api_config);
+		if (SetupAccessToken(api_config) == false)
+		{
+			return false;
+		}
+
+		return PrepareHttpServers(server_config->GetIp(), managers_config, api_bind_config);
 	}
 
 	std::shared_ptr<http::svr::RequestInterceptor> Server::CreateInterceptor()
@@ -219,33 +230,60 @@ namespace api
 
 	void Server::CreateVHost(const cfg::vhost::VirtualHost &vhost_config)
 	{
-		auto orchestrator = ocst::Orchestrator::GetInstance();
-
 		OV_ASSERT2(vhost_config.IsReadOnly() == false);
 
-		if (orchestrator->CreateVirtualHost(vhost_config) == ocst::Result::Failed)
+		switch (ocst::Orchestrator::GetInstance()->CreateVirtualHost(vhost_config))
 		{
-			throw http::HttpError(http::StatusCode::InternalServerError,
-								  "Failed to create virtual host: %s", vhost_config.GetName().CStr());
+			case ocst::Result::Failed:
+				throw http::HttpError(http::StatusCode::BadRequest,
+									  "Failed to create the virtual host: [%s]",
+									  vhost_config.GetName().CStr());
+
+			case ocst::Result::Succeeded:
+				break;
+
+			case ocst::Result::Exists:
+				throw http::HttpError(http::StatusCode::Conflict,
+									  "The virtual host already exists: [%s]",
+									  vhost_config.GetName().CStr());
+
+			case ocst::Result::NotExists:
+				// CreateVirtualHost() never returns NotExists
+				OV_ASSERT2(false);
+				throw http::HttpError(http::StatusCode::InternalServerError,
+									  "Unknown error occurred: [%s]",
+									  vhost_config.GetName().CStr());
 		}
 	}
 
 	void Server::DeleteVHost(const info::Host &host_info)
 	{
-		if (host_info.IsReadOnly())
-		{
-			throw http::HttpError(http::StatusCode::Forbidden,
-								  "Could not delete virtual host: %s is not created by API call", host_info.GetName().CStr());
-		}
+		OV_ASSERT2(host_info.IsReadOnly() == false);
 
 		logti("Deleting virtual host: %s", host_info.GetName().CStr());
 
-		auto result = ocst::Orchestrator::GetInstance()->DeleteVirtualHost(host_info);
-
-		if (result != ocst::Result::Succeeded)
+		switch (ocst::Orchestrator::GetInstance()->DeleteVirtualHost(host_info))
 		{
-			throw http::HttpError(http::StatusCode::InternalServerError,
-								  "Failed to delete virtual host: %s (%d)", host_info.GetName().CStr(), ov::ToUnderlyingType(result));
+			case ocst::Result::Failed:
+				throw http::HttpError(http::StatusCode::BadRequest,
+									  "Failed to delete the virtual host: [%s]",
+									  host_info.GetName().CStr());
+
+			case ocst::Result::Succeeded:
+				break;
+
+			case ocst::Result::Exists:
+				// CreateVirtDeleteVirtualHostualHost() never returns Exists
+				OV_ASSERT2(false);
+				throw http::HttpError(http::StatusCode::InternalServerError,
+									  "Unknown error occurred: [%s]",
+									  host_info.GetName().CStr());
+
+			case ocst::Result::NotExists:
+				// CreateVirtualHost() never returns NotExists
+				throw http::HttpError(http::StatusCode::NotFound,
+									  "The virtual host not exists: [%s]",
+									  host_info.GetName().CStr());
 		}
 	}
 }  // namespace api

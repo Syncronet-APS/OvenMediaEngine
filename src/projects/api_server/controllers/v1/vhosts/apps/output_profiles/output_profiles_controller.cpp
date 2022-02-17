@@ -35,130 +35,12 @@ namespace api
 			RegisterDelete(R"(\/(?<output_profile_name>[^\/]*))", &OutputProfilesController::OnDeleteOutputProfile);
 		};
 
-		ov::String GetOutputProfileName(const std::shared_ptr<http::svr::HttpConnection> &client)
-		{
-			auto &match_result = client->GetRequest()->GetMatchResult();
-
-			return match_result.GetNamedGroup("output_profile_name").GetValue();
-		}
-
-		off_t FindOutputProfile(const std::shared_ptr<mon::ApplicationMetrics> &app,
-								const ov::String &output_profile_name,
-								Json::Value *value)
-		{
-			auto &app_config = app->GetConfig();
-			off_t offset = 0;
-
-			for (auto &profile : app_config.GetOutputProfileList())
-			{
-				if (output_profile_name == profile.GetName().CStr())
-				{
-					if (value != nullptr)
-					{
-						*value = profile.ToJson();
-					}
-
-					return offset;
-				}
-
-				offset++;
-			}
-
-			return -1;
-		}
-
-		off_t FindOutputProfile(Json::Value &app_json,
-								const ov::String &output_profile_name,
-								Json::Value **value)
-		{
-			auto &output_profiles = app_json["outputProfiles"]["outputProfile"];
-			off_t offset = 0;
-
-			if (output_profiles.isArray())
-			{
-				for (auto &profile : output_profiles)
-				{
-					auto name = profile["name"];
-
-					if (name.isString())
-					{
-						if (output_profile_name == name.asCString())
-						{
-							if (value != nullptr)
-							{
-								*value = &profile;
-							}
-
-							return offset;
-						}
-					}
-					else
-					{
-						// Invalid name
-						OV_ASSERT(false, "String is expected, but %d found", name.type());
-					}
-
-					offset++;
-				}
-			}
-
-			return -1;
-		}
-
-		MAY_THROWS(HttpError)
-		void ChangeApp(const std::shared_ptr<mon::HostMetrics> &vhost,
-					   const std::shared_ptr<mon::ApplicationMetrics> &app,
-					   Json::Value &app_json)
-		{
-			// TODO(dimiden): Caution - Race condition may occur
-			// If an application is deleted immediately after the GetApplication(),
-			// the app information can no longer be obtained from Orchestrator
-			auto orchestrator = ocst::Orchestrator::GetInstance();
-
-			// Delete GET-only fields
-			app_json.removeMember("dynamic");
-
-			cfg::vhost::app::Application app_config;
-			try
-			{
-				::serdes::ApplicationFromJson(app_json, &app_config);
-			}
-			catch (const cfg::ConfigError &error)
-			{
-				throw http::HttpError(http::StatusCode::BadRequest, error.What());
-			}
-
-			if (ocst::Orchestrator::GetInstance()->DeleteApplication(*app) == ocst::Result::Failed)
-			{
-				throw http::HttpError(http::StatusCode::Forbidden,
-									  "Could not delete the application: [%s/%s]",
-									  vhost->GetName().CStr(), app->GetName().GetAppName().CStr());
-			}
-
-			auto result = orchestrator->CreateApplication(*vhost, app_config);
-
-			switch (result)
-			{
-				case ocst::Result::Failed:
-					throw http::HttpError(http::StatusCode::BadRequest, "Failed to create the application");
-
-				case ocst::Result::Succeeded:
-					break;
-
-				case ocst::Result::Exists:
-					throw http::HttpError(http::StatusCode::Conflict, "The application already exists");
-
-				case ocst::Result::NotExists:
-					// CreateApplication() never returns NotExists
-					OV_ASSERT2(false);
-					throw http::HttpError(http::StatusCode::InternalServerError, "Unknown error occurred");
-			}
-		}
-
 		ApiResponse OutputProfilesController::OnPostOutputProfile(const std::shared_ptr<http::svr::HttpConnection> &client, const Json::Value &request_body,
 																  const std::shared_ptr<mon::HostMetrics> &vhost,
 																  const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
+			ThrowIfVirtualIsReadOnly(*(vhost.get()));
+
 			if (request_body.isArray() == false)
 			{
 				throw http::HttpError(http::StatusCode::BadRequest, "Request body must be an array");
@@ -203,7 +85,7 @@ namespace api
 				}
 			}
 
-			ChangeApp(vhost, app, app_json);
+			RecreateApplication(vhost, app, app_json);
 
 			std::shared_ptr<mon::ApplicationMetrics> new_app;
 			Json::Value new_app_json;
@@ -283,6 +165,8 @@ namespace api
 																 const std::shared_ptr<mon::HostMetrics> &vhost,
 																 const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
+			ThrowIfVirtualIsReadOnly(*(vhost.get()));
+
 			if (request_body.isObject() == false)
 			{
 				throw http::HttpError(http::StatusCode::BadRequest, "Request body must be an object");
@@ -318,7 +202,7 @@ namespace api
 			// Modify the json object
 			*output_profile_json = request_json;
 
-			ChangeApp(vhost, app, app_json);
+			RecreateApplication(vhost, app, app_json);
 
 			auto new_app = GetApplication(vhost, app->GetName().GetAppName().CStr());
 
@@ -336,6 +220,8 @@ namespace api
 																	const std::shared_ptr<mon::HostMetrics> &vhost,
 																	const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
+			ThrowIfVirtualIsReadOnly(*(vhost.get()));
+
 			auto profile_name = GetOutputProfileName(client);
 			off_t index = FindOutputProfile(app, profile_name, nullptr);
 
@@ -352,7 +238,7 @@ namespace api
 				throw http::HttpError(http::StatusCode::Forbidden, "Could not delete output profile");
 			}
 
-			ChangeApp(vhost, app, app_json);
+			RecreateApplication(vhost, app, app_json);
 
 			return {};
 		}
