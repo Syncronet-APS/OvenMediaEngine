@@ -6,36 +6,21 @@ metadata:
   labels:
     tier: streaming
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: edge-output-playlists
       port: 80
       targetPort: 8090
       protocol: "TCP"
-
     - name: webrtc-signal
       port: 3334
       targetPort: 3334
       protocol: "TCP"
-
     - name: webrtc-tcp-relay
       port: 3479
       targetPort: 3479
       protocol: "TCP"
-
-  selector:
-    app: edge
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: edge-ice
-  namespace: default
-  labels:
-    tier: streaming
-spec:
-  type: NodePort
-  ports:
+    # Web RTC Ice
     - name: webrtc-ice-0
       port: 10000
       targetPort: 10000
@@ -62,3 +47,40 @@ spec:
       protocol: "UDP"
   selector:
     app: edge
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: edge-ice
+#   namespace: default
+#   labels:
+#     tier: streaming
+# spec:
+#   type: NodePort
+#   ports:
+#     - name: webrtc-ice-0
+#       port: 10000
+#       targetPort: 10000
+#       protocol: "UDP"
+#     - name: webrtc-ice-1
+#       port: 10001
+#       targetPort: 10001
+#       protocol: "UDP"
+#     - name: webrtc-ice-2
+#       port: 10002
+#       targetPort: 10002
+#       protocol: "UDP"
+#     - name: webrtc-ice-3
+#       port: 10003
+#       targetPort: 10003
+#       protocol: "UDP"
+#     - name: webrtc-ice-4
+#       port: 10004
+#       targetPort: 10004
+#       protocol: "UDP"
+#     - name: webrtc-ice-5
+#       port: 10005
+#       targetPort: 10005
+#       protocol: "UDP"
+#   selector:
+#     app: edge

@@ -29,11 +29,6 @@ build:
 deploy:
   kubectl:
     manifests:
-      # - nfs.recordings.pvc.yaml
-      # - nfs-server.service.yaml
-      # - nfs-server.deployment.yaml
-      # - nfs.pv.yaml
-      # - nfs.pvc.yaml
       - origin.svc.yaml
       - origin.deployment.yaml
       # - origin.autoscale.yaml
