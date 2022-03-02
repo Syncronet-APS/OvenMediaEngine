@@ -152,6 +152,7 @@
 								<Audio>
 									<Bypass>true</Bypass>
 								</Audio>
+								<!-- @see https://airensoft.gitbook.io/ovenmediaengine/transcoding#video -->
 								<Video>
 									<Bypass>true</Bypass>
 								</Video>
@@ -197,10 +198,12 @@
 							<Encodes>
 								<Video>
 									<Codec>h264</Codec>
+									<!-- <Preset>faster</Preset> -->
 									<Bitrate>1024000</Bitrate>
 									<Framerate>30</Framerate>
-									<Width>1280</Width>
 									<Height>720</Height>
+									<Width>-2</Width>
+									<!-- <Width>1280</Width> -->
 								</Video>
 								<Audio>
 									<Codec>aac</Codec>
@@ -236,8 +239,9 @@
 								</Audio>
 								<Video>
 									<Codec>h264</Codec>
-									<Width>640</Width>
+									<!-- <Preset>faster</Preset> -->
 									<Height>360</Height>
+									<Width>-2</Width>
 									<Bitrate>500000</Bitrate>
 									<Framerate>30</Framerate>
 								</Video>
