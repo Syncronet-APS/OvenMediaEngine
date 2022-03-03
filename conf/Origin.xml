@@ -202,8 +202,7 @@
 									<Bitrate>1024000</Bitrate>
 									<Framerate>30</Framerate>
 									<Height>720</Height>
-									<Width>-2</Width>
-									<!-- <Width>1280</Width> -->
+									<Width>1280</Width>
 								</Video>
 								<Audio>
 									<Codec>aac</Codec>
@@ -241,7 +240,7 @@
 									<Codec>h264</Codec>
 									<!-- <Preset>faster</Preset> -->
 									<Height>360</Height>
-									<Width>-2</Width>
+									<Width>640</Width>
 									<Bitrate>500000</Bitrate>
 									<Framerate>30</Framerate>
 								</Video>
