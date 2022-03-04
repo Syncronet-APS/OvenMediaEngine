@@ -198,31 +198,17 @@
 							<Encodes>
 								<Video>
 									<Codec>h264</Codec>
-									<!-- <Preset>faster</Preset> -->
-									<Bitrate>1024000</Bitrate>
-									<Framerate>30</Framerate>
-									<Height>720</Height>
-									<Width>1280</Width>
-								</Video>
-								<Audio>
-									<Codec>aac</Codec>
-									<Bitrate>441000</Bitrate>
-									<Samplerate>48000</Samplerate>
-									<Channel>2</Channel>
-								</Audio>
-								<!-- <Video>
-									<Codec>vp8</Codec>
-									<Width>1280</Width>
-									<Height>720</Height>
 									<Bitrate>2000000</Bitrate>
+									<Width>1280</Width>
+									<!-- Height is automatically calculated as the original video ratio -->
 									<Framerate>30.0</Framerate>
 								</Video>
 								<Audio>
-									<Codec>opus</Codec>
-									<Bitrate>128000</Bitrate>
+									<Codec>aac</Codec>
+									<Bitrate>240000</Bitrate>
 									<Samplerate>48000</Samplerate>
 									<Channel>2</Channel>
-								</Audio> -->
+								</Audio>
 							</Encodes>
 						</OutputProfile>
 
@@ -238,8 +224,8 @@
 								</Audio>
 								<Video>
 									<Codec>h264</Codec>
-									<!-- <Preset>faster</Preset> -->
-									<Height>360</Height>
+									<Preset>faster</Preset>
+									<!-- Height is automatically calculated as the original video ratio -->
 									<Width>640</Width>
 									<Bitrate>500000</Bitrate>
 									<Framerate>30</Framerate>
