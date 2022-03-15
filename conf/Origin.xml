@@ -131,7 +131,7 @@
 				<SecretKey>1234</SecretKey>
 				<Timeout>3000</Timeout>
 				<Enables>
-					<Providers>webrtc,srt</Providers>
+					<Providers>rtmp,webrtc,srt</Providers>
 					<Publishers>webrtc,hls,dash,lldash</Publishers>
 				</Enables>
 			</AdmissionWebhooks>
