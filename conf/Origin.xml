@@ -156,41 +156,8 @@
 								<Video>
 									<Bypass>true</Bypass>
 								</Video>
-								<!-- <Video>
-								<Codec>vp8</Codec>
-								<Width>1280</Width>
-								<Height>720</Height>
-								<Bitrate>2000000</Bitrate>
-								<Framerate>30.0</Framerate>
-								</Video>
-								<Audio>
-									<Codec>opus</Codec>
-									<Bitrate>128000</Bitrate>
-									<Samplerate>48000</Samplerate>
-									<Channel>2</Channel>
-								</Audio>
-								-->
 							</Encodes>
 						</OutputProfile>
-						<!-- <OutputProfile>
-							<Name>fhd_stream</Name>
-							<OutputStreamName>${OriginStreamName}_fhd</OutputStreamName>
-							<Encodes>
-								<Video>
-									<Codec>h264</Codec>
-									<Bitrate>1045000</Bitrate>
-									<Framerate>60</Framerate>
-									<Width>1920</Width>
-									<Height>1080</Height>
-								</Video>
-								<Audio>
-									<Codec>aac</Codec>
-									<Bitrate>240000</Bitrate>
-									<Samplerate>48000</Samplerate>
-									<Channel>2</Channel>
-								</Audio>
-							</Encodes>
-						</OutputProfile> -->
 
 						<OutputProfile>
 							<Name>hd_stream</Name>
@@ -209,40 +176,6 @@
 									<Samplerate>48000</Samplerate>
 									<Channel>2</Channel>
 								</Audio>
-							</Encodes>
-						</OutputProfile>
-
-						<OutputProfile>
-							<Name>sd_stream</Name>
-							<OutputStreamName>${OriginStreamName}_sd</OutputStreamName>
-							<Encodes>
-								<Audio>
-									<Codec>aac</Codec>
-									<Bitrate>128000</Bitrate>
-									<Samplerate>48000</Samplerate>
-									<Channel>2</Channel>
-								</Audio>
-								<Video>
-									<Codec>h264</Codec>
-									<Preset>faster</Preset>
-									<!-- Height is automatically calculated as the original video ratio -->
-									<Width>640</Width>
-									<Bitrate>500000</Bitrate>
-									<Framerate>30</Framerate>
-								</Video>
-								<!-- <Video>
-									<Codec>vp8</Codec>
-									<Width>640</Width>
-									<Height>360</Height>
-									<Bitrate>500000</Bitrate>
-									<Framerate>30.0</Framerate>
-								</Video>
-								<Audio>
-									<Codec>opus</Codec>
-									<Bitrate>128000</Bitrate>
-									<Samplerate>48000</Samplerate>
-									<Channel>2</Channel>
-								</Audio> -->
 							</Encodes>
 						</OutputProfile>
 					</OutputProfiles>
