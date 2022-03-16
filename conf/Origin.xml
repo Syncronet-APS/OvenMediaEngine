@@ -71,18 +71,6 @@
 				<Port>${env:OME_ORIGIN_PORT:9000}</Port>
 				<WorkerCount>4</WorkerCount>
 			</OVT>
-			<HLS>
-				<Port>${env:OME_HLS_STREAM_PORT:8080}</Port>
-				<WorkerCount>1</WorkerCount>
-				<!-- If you want to use TLS, specify the TLS port -->
-				<!-- <TLSPort>443</TLSPort> -->
-			</HLS>
-			<DASH>
-				<Port>${env:OME_DASH_STREAM_PORT:8080}</Port>
-				<WorkerCount>1</WorkerCount>
-				<!-- If you want to use TLS, specify the TLS port -->
-				<!-- <TLSPort>443</TLSPort> -->
-			</DASH>
 			<WebRTC>
 				<Signalling>
 					<Port>${env:OME_SIGNALLING_PORT:3333}</Port>
@@ -236,7 +224,7 @@
 					</Providers>
 					<Publishers>
 						<AppWorkerCount>1</AppWorkerCount>
-						<StreamWorkerCount>8</StreamWorkerCount>
+						<StreamWorkerCount>4</StreamWorkerCount>
 						<OVT />
 						<WebRTC>
 							<Timeout>30000</Timeout>
@@ -244,28 +232,6 @@
 							<Ulpfec>false</Ulpfec>
 							<JitterBuffer>false</JitterBuffer>
 						</WebRTC>
-						<HLS>
-							<SegmentDuration>5</SegmentDuration>
-							<SegmentCount>3</SegmentCount>
-							<CrossDomains>
-								<Url>*</Url>
-							</CrossDomains>
-						</HLS>
-						<DASH>
-							<SegmentDuration>5</SegmentDuration>
-							<SegmentCount>3</SegmentCount>
-							<CrossDomains>
-								<Url>*</Url>
-							</CrossDomains>
-							<UTCTiming />
-						</DASH>
-						<LLDASH>
-							<SegmentDuration>5</SegmentDuration>
-							<CrossDomains>
-								<Url>*</Url>
-							</CrossDomains>
-							<UTCTiming />
-						</LLDASH>
 						<FILE>
 							<RootPath>/mnt/recordings</RootPath>
 							<FilePath>/${VirtualHost}/${Application}/${Stream}/${StartTime:YYYYMMDDhhmmss}_${EndTime:YYYYMMDDhhmmss}.ts</FilePath>

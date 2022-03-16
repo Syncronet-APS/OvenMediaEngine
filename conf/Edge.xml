@@ -172,13 +172,14 @@
 					</Providers>
 
 					<Publishers>
-						<AppWorkerCount>1</AppWorkerCount>
-						<StreamWorkerCount>8</StreamWorkerCount>
+						<AppWorkerCount>4</AppWorkerCount>
+						<StreamWorkerCount>0</StreamWorkerCount>
 						<HLS>
-							<SegmentDuration>2</SegmentDuration>
+							<SegmentDuration>5</SegmentDuration>
 							<SegmentCount>3</SegmentCount>
 							<CrossDomains>
 								<Url>*.zometv.com</Url>
+								<Url>*.ovenplayer.com</Url>
 								<Url>http?://*.zometv.com.com</Url>
 							</CrossDomains>
 						</HLS>
