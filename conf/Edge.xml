@@ -28,9 +28,9 @@
 		-->
 		<Providers>
 			<!-- Pull providers -->
-			<!-- <RTSPC>
+			<RTSPC>
 				<WorkerCount>1</WorkerCount>
-			</RTSPC> -->
+			</RTSPC>
 			<OVT>
 				<WorkerCount>1</WorkerCount>
 			</OVT>
@@ -57,23 +57,20 @@
 					<!-- <TLSPort>5556</TLSPort> -->
 				</Signalling>
 				<IceCandidates>
-					<TcpRelay>192.46.238.94:3479</TcpRelay>
-					<IceCandidate>45.79.249.202:10000-10005/udp</IceCandidate>
-					<IceCandidate>45.79.249.213:10000-10005/udp</IceCandidate>
-					<IceCandidate>139.177.182.183:10000-10005/udp</IceCandidate>
-					<IceCandidate>45.79.248.155:10000-10005/udp</IceCandidate>
-					<IceCandidate>*:10000-10005/udp</IceCandidate>
+					<TcpRelay>${env:OME_TCP_RELAY_ADDRESS:*:3478}</TcpRelay>
+					<TcpForce>false</TcpForce>
+					<TcpRelayWorkerCount>1</TcpRelayWorkerCount>
+					<IceCandidate>${env:OME_ICE_CANDIDATES:*:10000/udp}</IceCandidate>
 				</IceCandidates>
 			</WebRTC>
 		</Publishers>
 	</Bind>
 
 	<!-- P2P works only in WebRTC -->
-	<!--
 	<P2P>
 		<MaxClientPeersPerHostPeer>2</MaxClientPeersPerHostPeer>
 	</P2P>
-	-->
+
 
 	<VirtualHosts>
 		<!-- You can use wildcard like this to include multiple XMLs -->
@@ -150,6 +147,11 @@
 						<Urls>
 							<Url>${env:DEFAULT_ORIGIN_SERVER:}:${env:DEFAULT_ORIGIN_PORT:9000}/app/</Url>
 						</Urls>
+						<!-- 
+							Whether to pass the query string to the origin server in the URL the user requested to play (used by some RTSP servers) 
+							default : true
+						-->
+						<ForwardQueryParams>true</ForwardQueryParams>
 					</Pass>
 				</Origin>
 			</Origins>
@@ -173,12 +175,14 @@
 						<AppWorkerCount>1</AppWorkerCount>
 						<StreamWorkerCount>8</StreamWorkerCount>
 						<HLS>
-							<SegmentDuration>5</SegmentDuration>
+							<SegmentDuration>2</SegmentDuration>
 							<SegmentCount>3</SegmentCount>
 							<CrossDomains>
-								<Url>*</Url>
+								<Url>*.zometv.com</Url>
+								<Url>http?://*.zometv.com.com</Url>
 							</CrossDomains>
 						</HLS>
+						<WebRTC />
 					</Publishers>
 				</Application>
 			</Applications>
