@@ -33,13 +33,12 @@ public:
 	std::shared_ptr<info::Record> &GetRecord();
 
 private:
-	void UpdateTemplateOutputPath();
 	ov::String GetRootPath();
 	ov::String GetOutputTempFilePath(std::shared_ptr<info::Record> &record);
 	ov::String GetOutputFilePath();
 	ov::String GetOutputFileInfoPath();
 	ov::String ConvertMacro(ov::String src);
-	bool MakeDirectoryRecursive(std::string s, mode_t mode = S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	bool MakeDirectoryRecursive(std::string s);
 
 private:
 	std::shared_ptr<FileWriter> _writer;
@@ -49,7 +48,4 @@ private:
 	std::vector<int32_t> selected_tracks;
 
 	std::shared_mutex _lock;
-
-	ov::String _template_output_file_path;
-	ov::String _template_output_info_path;
 };
