@@ -33,7 +33,7 @@ RUN \
         cd ${TEMP_DIR}/src && \
         mkdir -p ${PREFIX}/bin/origin_conf && \
         mkdir -p ${PREFIX}/bin/edge_conf && \
-        cp ../misc/install_nvidia_docker_image.sh ${PREFIX}/bin && \
+        cp ../misc/entrypoint.sh ${PREFIX}/bin && \
         cp ./bin/RELEASE/OvenMediaEngine ${PREFIX}/bin/ && \
         cp ../conf/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
         cp ../conf/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
@@ -48,4 +48,4 @@ EXPOSE          80/tcp 8080/tcp 8090/tcp 1935/tcp 3333/tcp 3334/tcp 4000-4005/ud
 COPY            --from=build /opt/ovenmediaengine /opt/ovenmediaengine
 
 # default to origin
-CMD             ["/opt/ovenmediaengine/bin/OvenMediaEngine", "-c", "origin_conf"]
+CMD             ["/opt/ovenmediaengine/bin/entrypoint.sh", "-c", "origin_conf"]
