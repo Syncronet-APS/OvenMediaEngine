@@ -1,7 +1,7 @@
 ARG     OME_VERSION=master
 ARG     BUILD_ENV=production
 ARG 	STRIP=TRUE
-ARG     GPU=FALSE
+ARG     GPU=TRUE
 
 FROM    ubuntu:21.04 AS base
 
@@ -21,13 +21,8 @@ WORKDIR /tmp/ome
 FROM sources as build
 
 ## Install dependencies
-RUN \
-        if [ "$GPU" = "TRUE" ] ; then \
-                ${TEMP_DIR}/misc/install_nvidia_docker_image.sh ; \
-                ${TEMP_DIR}/misc/prerequisites.sh  --enable-nvc ; \
-        else \
-                ${TEMP_DIR}/misc/prerequisites.sh ; \
-        fi
+RUN ${TEMP_DIR}/misc/install_nvidia_docker_image.sh
+RUN ${TEMP_DIR}/misc/prerequisites.sh  --enable-nvc
 
 ## Build OvenMediaEngine
 RUN \
@@ -42,6 +37,7 @@ RUN \
         cd ${TEMP_DIR}/src && \
         mkdir -p ${PREFIX}/bin/origin_conf && \
         mkdir -p ${PREFIX}/bin/edge_conf && \
+        cp ../misc/install_nvidia_docker_image.sh ${PREFIX}/bin && \
         cp ./bin/RELEASE/OvenMediaEngine ${PREFIX}/bin/ && \
         cp ../conf/Origin.xml ${PREFIX}/bin/origin_conf/Server.xml && \
         cp ../conf/Logger.xml ${PREFIX}/bin/origin_conf/Logger.xml && \
