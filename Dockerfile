@@ -4,6 +4,8 @@ ARG 	STRIP=TRUE
 ARG     GPU=TRUE
 
 FROM    ubuntu:20.04 AS base
+COPY ./ /tmp/ome
+WORKDIR /tmp/ome
 
 ENV     PREFIX=/opt/ovenmediaengine
 ENV     TEMP_DIR=/tmp/ome
@@ -12,17 +14,11 @@ ENV     TEMP_DIR=/tmp/ome
 ENV     DEBIAN_FRONTEND=noninteractive
 #RUN     sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//mirror:\/\/mirrors\.ubuntu\.com\/mirrors\.txt/' /etc/apt/sources.list
 RUN     apt-get update && apt-get install -y tzdata sudo curl git
-
-FROM    base AS sources
-
-COPY ./ /tmp/ome
-WORKDIR /tmp/ome
-
-FROM sources as build
-
 ## Install dependencies
 RUN ${TEMP_DIR}/misc/install_nvidia_docker_image.sh
 RUN ${TEMP_DIR}/misc/prerequisites.sh  --enable-nvc
+
+FROM base as build
 
 ## Build OvenMediaEngine
 RUN \
