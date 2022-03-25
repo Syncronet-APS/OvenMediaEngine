@@ -215,6 +215,7 @@
 									<Width>1280</Width>
 									<Height>720</Height>
 									<Bitrate>5000000</Bitrate>
+									<Preset>fast</Preset>
 									<Framerate>30</Framerate>
 								</Video>
 								<Audio>
