@@ -13,7 +13,7 @@ rm -rf /var/lib/apt/lists/*
 ## For libraries in the cuda-compat-* package:
 ## https://docs.nvidia.com/cuda/eula/index.html#attachment-a
 apt-get update 
-apt-get install -y --no-install-recommends cuda-cudart-11-6=11.6.55-1 cuda-compat-11-6 
+apt-get install -y --no-install-recommends cuda-cudart-11-3=11.3.58-1 cuda-compat-11-3 
 ln -s cuda-11.3 /usr/local/cuda 
 rm -rf /var/lib/apt/lists/*
 
@@ -27,37 +27,37 @@ export LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRAR
 NVIDIA_VISIBLE_DEVICES=all
 NVIDIA_DRIVER_CAPABILITIES=compute,utility
 NVIDIA_REQUIRE_CUDA="cuda>=11.3 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 driver>=450"
-NCCL_VERSION=2.12.7
+NCCL_VERSION=2.9.6
 
 apt-get update && \
 apt-get install -y --no-install-recommends \
-    cuda-libraries-11-6=11.6.1-1 \
-    libnpp-11-6=11.6.0.55-1 \
-    cuda-nvtx-11-6=11.6.55-1 \
-    libcublas-11-6=11.8.1.74-1 \
-    libcusparse-11-6=11.7.1.55-1 \
-    libnccl2=$NCCL_VERSION-1+cuda11.6 && \
+    cuda-libraries-11-3=11.3.0-1 \
+    libnpp-11-3=11.3.3.44-1 \
+    cuda-nvtx-11-3=11.3.58-1 \
+    libcublas-11-3=11.4.2.10064-1 \
+    libcusparse-11-3=11.5.0.58-1 \
+    libnccl2=$NCCL_VERSION-1+cuda11.3 && \
 rm -rf /var/lib/apt/lists/*
 
 ## apt from auto upgrading the cublas package.
 ## See https://gitlab.com/nvidia/container-images/cuda/-/issues/88
-#apt-mark hold libcublas-11-6 libnccl2 libcublas-dev-11-6 libnccl-dev
+apt-mark hold libcublas-11-3 libnccl2 libcublas-dev-11-3 libnccl-dev
 #LIBRARY_PATH=/usr/local/cuda/lib64/stubs
 
 apt-get update && apt-get install -y --no-install-recommends \
-    cuda-cudart-dev-11-6=11.6.55-1 \
-    cuda-command-line-tools-11-6=11.6.1-1 \
-    cuda-minimal-build-11-6=11.6.1-1 \
-    cuda-libraries-dev-11-6=11.6.1-1 \
-    cuda-nvml-dev-11-6=11.6.55-1 \
-    libnpp-dev-11-6=11.6.2.112-1 \
-    libnccl-dev=2.12.7-1+cuda11.6 \
-    libcublas-dev-11-6=11.8.1.74-1 \
-    libcusparse-dev-11-6=11.7.2.112-1 \
+    cuda-cudart-dev-11-3=11.3.58-1 \
+    cuda-command-line-tools-11-3=11.3.0-1 \
+    cuda-minimal-build-11-3=11.3.0-1 \
+    cuda-libraries-dev-11-3=11.3.0-1 \
+    cuda-nvml-dev-11-3=11.3.58-1 \
+    libnpp-dev-11-3=11.3.3.44-1 \
+    libnccl-dev=2.9.6-1+cuda11.3 \
+    libcublas-dev-11-3=11.4.2.10064-1 \
+    libcusparse-dev-11-3=11.5.0.58-1 \
     && rm -rf /var/lib/apt/lists/*
 
 ## Build NVCC Header
-NVCC_HEADERS=11.1.5.1
+NVCC_HEADERS=11.0.10.1
 DIR=/tmp/nvcc-hdr && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \

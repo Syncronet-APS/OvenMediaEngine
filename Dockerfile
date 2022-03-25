@@ -3,7 +3,7 @@ ARG     BUILD_ENV=production
 ARG 	STRIP=TRUE
 ARG     GPU=TRUE
 
-FROM    ubuntu:20.04 AS base
+FROM    ubuntu:21.04 AS base
 COPY ./ /tmp/ome
 WORKDIR /tmp/ome
 
