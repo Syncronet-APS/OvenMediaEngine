@@ -231,42 +231,30 @@
 						</OutputProfile>
 					</OutputProfiles>
 					<Providers>
-						<OVT />
-						<WebRTC />
+						<!-- <OVT /> -->
+						<!-- <WebRTC /> -->
 						<RTMP />
-						<SRT />
-						<RTSPPull />
-						<MPEGTS>
+						<!-- <SRT /> -->
+						<!-- <RTSPPull /> -->
+						<!-- <MPEGTS>
 							<StreamMap>
-								<!--
-									Set the stream name of the client connected to the port to "stream_${Port}"
-									For example, if a client connets to port 4000, OME creates a "stream_4000" stream
-									<Stream>
-										<Name>stream_${Port}</Name>
-										<Port>4000,4001-4004</Port>
-									</Stream>
-									<Stream>
-										<Name>stream_4005</Name>
-										<Port>4005</Port>
-									</Stream>
-								-->
 								<Stream>
 									<Name>stream_${Port}</Name>
 									<Port>4000</Port>
 								</Stream>
-							</StreamMap>
-						</MPEGTS>
+							</StreamMap> 
+						</MPEGTS> -->
 					</Providers>
 					<Publishers>
-						<AppWorkerCount>1</AppWorkerCount>
-						<StreamWorkerCount>4</StreamWorkerCount>
+						<AppWorkerCount>4</AppWorkerCount>
+						<StreamWorkerCount>16</StreamWorkerCount>
 						<OVT />
-						<WebRTC>
+						<!-- <WebRTC>
 							<Timeout>30000</Timeout>
 							<Rtx>false</Rtx>
 							<Ulpfec>false</Ulpfec>
 							<JitterBuffer>false</JitterBuffer>
-						</WebRTC>
+						</WebRTC> -->
 						<FILE>
 							<RootPath>/mnt/recordings</RootPath>
 							<FilePath>/${VirtualHost}/${Application}/${Stream}/${StartTime:YYYYMMDDhhmmss}_${EndTime:YYYYMMDDhhmmss}.ts</FilePath>
