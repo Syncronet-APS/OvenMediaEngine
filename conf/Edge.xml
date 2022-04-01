@@ -173,7 +173,7 @@
 
 					<Publishers>
 						<AppWorkerCount>4</AppWorkerCount>
-						<StreamWorkerCount>0</StreamWorkerCount>
+						<StreamWorkerCount>8</StreamWorkerCount>
 						<HLS>
 							<SegmentDuration>5</SegmentDuration>
 							<SegmentCount>3</SegmentCount>
@@ -181,9 +181,8 @@
 								<Url>localhost</Url>
 								<Url>localhost:3000</Url>
 								<Url>localhost:8080</Url>
-								<Url>*.zometv.com</Url>
+								<Url>zometv.com</Url>
 								<Url>*.ovenplayer.com</Url>
-								<Url>http?://*.zometv.com</Url>
 							</CrossDomains>
 						</HLS>
 						<WebRTC />
