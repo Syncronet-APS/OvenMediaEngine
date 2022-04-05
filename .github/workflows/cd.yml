@@ -3,7 +3,7 @@ name: continuous-delivery-to-gke
 on:
   push:
     branches:
-      - master
+      - release
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
@@ -31,11 +31,10 @@ jobs:
           context: .
           push: true
           tags: syncronet/zome-ome:latest # this needs to match the repo you created in docker
-          args: 
-            GPU: "true"
+          args: "GPU=TRUE"
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     needs: build
     runs-on: ubuntu-latest
 
