@@ -183,6 +183,7 @@
 								<Url>localhost:8080</Url>
 								<Url>zometv.com</Url>
 								<Url>*.ovenplayer.com</Url>
+								<Url>https://www.hlsplayer.net</Url>
 							</CrossDomains>
 						</HLS>
 						<WebRTC />
