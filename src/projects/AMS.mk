@@ -11,7 +11,8 @@ PROJECT_CXX_INCLUDES := \
 PROJECT_CFLAGS := \
 	-D__STDC_CONSTANT_MACROS \
 	-Wfatal-errors \
-	-Wno-unused-function
+	-Wno-unused-function \
+	-DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 PROJECT_CXXFLAGS := \
 	$(PROJECT_CFLAGS) \

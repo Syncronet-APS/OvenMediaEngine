@@ -284,6 +284,14 @@ install_libpcre2()
     rm -rf ${DIR} ) || fail_exit "libpcre2"
 }
 
+install_vcpkg() {
+    git clone https://github.com/Microsoft/vcpkg.git /opt/vcpkg
+    /opt/vcpkg/bootstrap-vcpkg.sh
+}
+
+install_google_cloud() {
+    /opt/vcpkg install "google-cloud-cpp[core,storage]"
+}
 
 install_base_ubuntu()
 {
@@ -430,6 +438,8 @@ install_fdk_aac
 install_ffmpeg
 install_jemalloc
 install_libpcre2
+install_vcpkg
+install_google_cloud
 
 if [ "${WITH_OME}" == "true" ]; then
     install_ovenmediaengine
