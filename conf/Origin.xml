@@ -21,12 +21,12 @@
 	<Bind>
 		<!-- Enable this configuration if you want to use API Server -->
 
-		<Managers>
+		<!-- <Managers>
 			<API>
 				<Port>${env:OME_API_PORT:8081}</Port>
 				<WorkerCount>1</WorkerCount>
 			</API>
-		</Managers>
+		</Managers> -->
 
 		<Providers>
 			<!-- Pull providers -->
@@ -106,9 +106,9 @@
 			-->
 		</Host>
 
-		<API>
+		<!-- <API>
 			<AccessToken>your_access_token</AccessToken>
-		</API>
+		</API> -->
 	</Managers>
 
 	<VirtualHosts>
