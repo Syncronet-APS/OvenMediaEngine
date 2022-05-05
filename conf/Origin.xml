@@ -255,11 +255,6 @@
 							<Ulpfec>false</Ulpfec>
 							<JitterBuffer>false</JitterBuffer>
 						</WebRTC> -->
-						<FILE>
-							<RootPath>/mnt/recordings</RootPath>
-							<FilePath>/${VirtualHost}/${Application}/${Stream}/${StartTime:YYYYMMDDhhmmss}_${EndTime:YYYYMMDDhhmmss}.ts</FilePath>
-							<InfoPath>/${VirtualHost}/${Application}/${Stream}.xml</InfoPath>
-						</FILE>
 					</Publishers>
 				</Application>
 			</Applications>
