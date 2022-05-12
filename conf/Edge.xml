@@ -191,7 +191,13 @@
 								<Url>localhost</Url>
 								<Url>localhost:3000</Url>
 								<Url>localhost:8080</Url>
+								<Url>localhost:8081</Url>
+								<Url>localhost:8082</Url>
+								<Url>localhost:8083</Url>
+								<Url>localhost:8084</Url>
+								<Url>localhost:8085</Url>
 								<Url>zometv.com</Url>
+								<Url>player.zometv.com</Url>
 								<Url>*.ovenplayer.com</Url>
 								<Url>https://www.hlsplayer.net</Url>
 							</CrossDomains>
