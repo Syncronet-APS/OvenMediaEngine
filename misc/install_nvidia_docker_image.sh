@@ -6,6 +6,7 @@ apt-get -y install build-essential nasm autoconf libtool zlib1g-dev tclsh cmake 
 
 apt-get install -y --no-install-recommends gnupg2 curl ca-certificates
 curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub | apt-key add -
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
 echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/cuda.list
 echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
 rm -rf /var/lib/apt/lists/*
