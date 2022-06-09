@@ -183,12 +183,12 @@
 							<Encodes>
 								<!-- WebRTC does not support AAC -->
 								<!-- @see https://airensoft.gitbook.io/ovenmediaengine/transcoding#bypass-without-transcoding -->
-								<!-- <Audio>
+								<Audio>
 									<Codec>opus</Codec>
 									<Bitrate>128000</Bitrate>
 									<Samplerate>48000</Samplerate>
 									<Channel>2</Channel>
-								</Audio> -->
+								</Audio>
 
 								<Audio>
 									<Bypass>true</Bypass>
@@ -210,6 +210,16 @@
 									<Bitrate>5000000</Bitrate>
 									<Framerate>30</Framerate>
 								</Video>
+								<Video>
+									<Name>720_vp8</Name>
+									<Codec>vp8</Codec>
+									<Width>1280</Width>
+									<!-- <Height>720</Height> -->
+									<Bitrate>2000000</Bitrate>
+									<Framerate>30.0</Framerate>
+									<Preset>fast</Preset>
+									<!-- <ThreadCount>4</ThreadCount> -->
+								</Video>
 								<!-- <Video>
 									<Codec>h265</Codec>
 									<Width>1280</Width>
@@ -226,6 +236,13 @@
 								</Audio> -->
 								<Audio>
 									<Bypass>true</Bypass>
+								</Audio>
+								<Audio>
+									<Name>opus_128</Name>
+									<Codec>opus</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
 								</Audio>
 							</Encodes>
 						</OutputProfile>
@@ -257,6 +274,13 @@
 								</Audio> -->
 								<Audio>
 									<Bypass>true</Bypass>
+								</Audio>
+								<Audio>
+									<Name>opus_128</Name>
+									<Codec>opus</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
 								</Audio>
 							</Encodes>
 						</OutputProfile>
