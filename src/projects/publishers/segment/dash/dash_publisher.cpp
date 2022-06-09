@@ -33,7 +33,7 @@ bool DashPublisher::Start()
 
 	if (dash_config.IsParsed() == false)
 	{
-		logti("%s is disabled by configuration", GetPublisherName());
+		logtw("%s is disabled by configuration", GetPublisherName());
 		return true;
 	}
 
@@ -42,7 +42,7 @@ bool DashPublisher::Start()
 	worker_count = is_parsed ? worker_count : HTTP_SERVER_USE_DEFAULT_COUNT;
 
 	return SegmentPublisher::Start(dash_config.GetPort(), dash_config.GetTlsPort(),
-								   std::make_shared<DashStreamServer>(), worker_count);
+								   std::make_shared<DashStreamServer>(), false, worker_count);
 }
 
 std::shared_ptr<pub::Application> DashPublisher::OnCreatePublisherApplication(const info::Application &application_info)

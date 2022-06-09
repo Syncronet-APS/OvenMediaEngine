@@ -42,7 +42,7 @@ namespace api
 			RegisterGet(R"((pushes))", &AppActionsController::OnGetPushes);
 		};
 
-		ApiResponse AppActionsController::OnGetRecords(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnGetRecords(const std::shared_ptr<http::svr::HttpExchange> &client,
 													   const std::shared_ptr<mon::HostMetrics> &vhost,
 													   const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
@@ -51,14 +51,14 @@ namespace api
 			return OnPostRecords(client, empty_body, vhost, app);
 		}
 
-		ApiResponse AppActionsController::OnPostRecords(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnPostRecords(const std::shared_ptr<http::svr::HttpExchange> &client,
 														const Json::Value &request_body,
 														const std::shared_ptr<mon::HostMetrics> &vhost,
 														const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
 			Json::Value response;
 
-			auto publisher = std::dynamic_pointer_cast<FilePublisher>(ocst::Orchestrator::GetInstance()->GetPublisherFromType(PublisherType::File));
+			auto publisher = std::dynamic_pointer_cast<pub::FilePublisher>(ocst::Orchestrator::GetInstance()->GetPublisherFromType(PublisherType::File));
 			if (publisher == nullptr)
 			{
 				throw http::HttpError(http::StatusCode::NotFound,
@@ -67,7 +67,7 @@ namespace api
 									  app->GetName().GetAppName().CStr());
 			}
 
-			auto application = std::static_pointer_cast<FileApplication>(publisher->GetApplicationByName(app->GetName()));
+			auto application = std::static_pointer_cast<pub::FileApplication>(publisher->GetApplicationByName(app->GetName()));
 			if (application == nullptr)
 			{
 				throw http::HttpError(http::StatusCode::NotFound,
@@ -92,7 +92,7 @@ namespace api
 			std::vector<std::shared_ptr<info::Record>> results;
 
 			auto error = application->GetRecords(record, results);
-			if (error->GetCode() != FilePublisher::FilePublisherStatusCode::Success || results.size() == 0)
+			if (error->GetCode() != pub::FilePublisher::FilePublisherStatusCode::Success || results.size() == 0)
 			{
 				throw http::HttpError(http::StatusCode::NotFound,
 									  "There is no record information");
@@ -106,14 +106,14 @@ namespace api
 			return response;
 		}
 
-		ApiResponse AppActionsController::OnPostStartRecord(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnPostStartRecord(const std::shared_ptr<http::svr::HttpExchange> &client,
 															const Json::Value &request_body,
 															const std::shared_ptr<mon::HostMetrics> &vhost,
 															const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
 			Json::Value response;
 
-			auto publisher = std::dynamic_pointer_cast<FilePublisher>(ocst::Orchestrator::GetInstance()->GetPublisherFromType(PublisherType::File));
+			auto publisher = std::dynamic_pointer_cast<pub::FilePublisher>(ocst::Orchestrator::GetInstance()->GetPublisherFromType(PublisherType::File));
 			if (publisher == nullptr)
 			{
 				throw http::HttpError(http::StatusCode::NotFound,
@@ -121,7 +121,7 @@ namespace api
 									  vhost->GetName().CStr(), app->GetName().GetAppName().CStr());
 			}
 
-			auto application = std::static_pointer_cast<FileApplication>(publisher->GetApplicationByName(app->GetName()));
+			auto application = std::static_pointer_cast<pub::FileApplication>(publisher->GetApplicationByName(app->GetName()));
 			if (application == nullptr)
 			{
 				throw http::HttpError(http::StatusCode::NotFound,
@@ -144,12 +144,12 @@ namespace api
 			}
 
 			auto error = application->RecordStart(record);
-			if (error->GetCode() == FilePublisher::FilePublisherStatusCode::FailureInvalidParameter)
+			if (error->GetCode() == pub::FilePublisher::FilePublisherStatusCode::FailureInvalidParameter)
 			{
 				throw http::HttpError(http::StatusCode::BadRequest,
 									  error->GetMessage());
 			}
-			else if (error->GetCode() == FilePublisher::FilePublisherStatusCode::FailureDupulicateKey)
+			else if (error->GetCode() == pub::FilePublisher::FilePublisherStatusCode::FailureDupulicateKey)
 			{
 				throw http::HttpError(http::StatusCode::BadRequest,
 									  error->GetMessage());
@@ -160,14 +160,14 @@ namespace api
 			return {http::StatusCode::OK, std::move(response)};
 		}
 
-		ApiResponse AppActionsController::OnPostStopRecord(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnPostStopRecord(const std::shared_ptr<http::svr::HttpExchange> &client,
 														   const Json::Value &request_body,
 														   const std::shared_ptr<mon::HostMetrics> &vhost,
 														   const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
 			Json::Value response;
 
-			auto publisher = std::dynamic_pointer_cast<FilePublisher>(ocst::Orchestrator::GetInstance()->GetPublisherFromType(PublisherType::File));
+			auto publisher = std::dynamic_pointer_cast<pub::FilePublisher>(ocst::Orchestrator::GetInstance()->GetPublisherFromType(PublisherType::File));
 			if (publisher == nullptr)
 			{
 				throw http::HttpError(http::StatusCode::NotFound,
@@ -176,7 +176,7 @@ namespace api
 									  app->GetName().GetAppName().CStr());
 			}
 
-			auto application = std::static_pointer_cast<FileApplication>(publisher->GetApplicationByName(app->GetName()));
+			auto application = std::static_pointer_cast<pub::FileApplication>(publisher->GetApplicationByName(app->GetName()));
 			if (application == nullptr)
 			{
 				throw http::HttpError(http::StatusCode::NotFound,
@@ -200,11 +200,11 @@ namespace api
 			}
 
 			auto error = application->RecordStop(record);
-			if (error->GetCode() == FilePublisher::FilePublisherStatusCode::FailureInvalidParameter)
+			if (error->GetCode() == pub::FilePublisher::FilePublisherStatusCode::FailureInvalidParameter)
 			{
 				throw http::HttpError(http::StatusCode::BadRequest, error->GetMessage());
 			}
-			else if (error->GetCode() == FilePublisher::FilePublisherStatusCode::FailureNotExist)
+			else if (error->GetCode() == pub::FilePublisher::FilePublisherStatusCode::FailureNotExist)
 			{
 				throw http::HttpError(http::StatusCode::NotFound, error->GetMessage());
 			}
@@ -214,7 +214,7 @@ namespace api
 			return {http::StatusCode::OK, std::move(response)};
 		}
 
-		ApiResponse AppActionsController::OnGetPushes(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnGetPushes(const std::shared_ptr<http::svr::HttpExchange> &client,
 													  const std::shared_ptr<mon::HostMetrics> &vhost,
 													  const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{
@@ -223,7 +223,7 @@ namespace api
 			return OnPostPushes(client, empty_body, vhost, app);
 		}
 
-		ApiResponse AppActionsController::OnPostPushes(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnPostPushes(const std::shared_ptr<http::svr::HttpExchange> &client,
 													   const Json::Value &request_body,
 													   const std::shared_ptr<mon::HostMetrics> &vhost,
 													   const std::shared_ptr<mon::ApplicationMetrics> &app)
@@ -274,7 +274,7 @@ namespace api
 			return {http::StatusCode::OK, std::move(response)};
 		}
 
-		ApiResponse AppActionsController::OnPostStartPush(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnPostStartPush(const std::shared_ptr<http::svr::HttpExchange> &client,
 														  const Json::Value &request_body,
 														  const std::shared_ptr<mon::HostMetrics> &vhost,
 														  const std::shared_ptr<mon::ApplicationMetrics> &app)
@@ -343,7 +343,7 @@ namespace api
 			return {http::StatusCode::OK, std::move(response)};
 		}
 
-		ApiResponse AppActionsController::OnPostStopPush(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnPostStopPush(const std::shared_ptr<http::svr::HttpExchange> &client,
 														 const Json::Value &request_body,
 														 const std::shared_ptr<mon::HostMetrics> &vhost,
 														 const std::shared_ptr<mon::ApplicationMetrics> &app)
@@ -397,7 +397,7 @@ namespace api
 								  app->GetName().GetAppName().CStr());
 		}
 
-		ApiResponse AppActionsController::OnGetDummyAction(const std::shared_ptr<http::svr::HttpConnection> &client,
+		ApiResponse AppActionsController::OnGetDummyAction(const std::shared_ptr<http::svr::HttpExchange> &client,
 														   const std::shared_ptr<mon::HostMetrics> &vhost,
 														   const std::shared_ptr<mon::ApplicationMetrics> &app)
 		{

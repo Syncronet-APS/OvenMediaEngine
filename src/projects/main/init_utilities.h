@@ -6,28 +6,35 @@
 //  Copyright (c) 2020 AirenSoft. All rights reserved.
 //
 //==============================================================================
-#define INIT_MODULE(variable, name, create)                      \
-	decltype(create) variable = nullptr;                         \
-                                                                 \
-	if (succeeded)                                               \
-	{                                                            \
-		logti("Trying to create " name "...");                   \
-                                                                 \
-		variable = create;                                       \
-                                                                 \
-		if (variable == nullptr)                                 \
-		{                                                        \
-			logte("Failed to initialize " name);                 \
-			succeeded = false;                                   \
-		}                                                        \
-		else                                                     \
-		{                                                        \
-			if (orchestrator->RegisterModule(variable) == false) \
-			{                                                    \
-				logte("Failed to register" name);                \
-				succeeded = false;                               \
-			}                                                    \
-		}                                                        \
+#define INIT_MODULE(variable, name, create)                          \
+	decltype(create) variable = nullptr;                             \
+                                                                     \
+	if (succeeded)                                                   \
+	{                                                                \
+		logti("Trying to create " name "...");                       \
+                                                                     \
+		variable = create;                                           \
+                                                                     \
+		if (variable == nullptr)                                     \
+		{                                                            \
+			logte("Failed to initialize " name);                     \
+			succeeded = false;                                       \
+		}                                                            \
+		else                                                         \
+		{                                                            \
+			if (variable->IsModuleAvailable() == true)               \
+			{                                                        \
+				if (orchestrator->RegisterModule(variable) == false) \
+				{                                                    \
+					logte("Failed to register " name);               \
+					succeeded = false;                               \
+				}                                                    \
+			}                                                        \
+			else                                                     \
+			{                                                        \
+				variable.reset();                                    \
+			}                                                        \
+		}                                                            \
 	}
 
 #define RELEASE_MODULE(variable, name)                         \
@@ -41,7 +48,7 @@
 		}                                                      \
 		else                                                   \
 		{                                                      \
-			logte("Failed to unregister" name);                \
+			logte("Failed to unregister " name);                \
 		}                                                      \
 	}
 

@@ -97,7 +97,7 @@ std::shared_ptr<ov::Data> AacConverter::MakeAdtsHeader(uint8_t aac_profile, uint
 // Raw audio data msut be 1 frame
 std::shared_ptr<ov::Data> AacConverter::ConvertRawToAdts(const uint8_t *data, size_t data_len, const AACSpecificConfig &aac_config)
 {
-	auto adts_data = std::make_shared<ov::Data>();
+	auto adts_data = std::make_shared<ov::Data>(data_len + 16);
 
 	//Get the AACSecificConfig value from extradata;
 	uint8_t aac_profile = (uint8_t)aac_config.GetAacProfile();
@@ -112,14 +112,14 @@ std::shared_ptr<ov::Data> AacConverter::ConvertRawToAdts(const uint8_t *data, si
 	return adts_data;
 }
 
-std::shared_ptr<ov::Data> AacConverter::ConvertRawToAdts(const std::shared_ptr<ov::Data> &data, const std::shared_ptr<AACSpecificConfig> &aac_config)
+std::shared_ptr<ov::Data> AacConverter::ConvertRawToAdts(const std::shared_ptr<const ov::Data> &data, const std::shared_ptr<AACSpecificConfig> &aac_config)
 {
 	if(aac_config == nullptr)
 	{
 		return nullptr;
 	}
 	
-	auto adts_data = std::make_shared<ov::Data>();
+	auto adts_data = std::make_shared<ov::Data>(data->GetLength() + 16);
 	int16_t aac_raw_length = data->GetLength();
 
 	//Get the AACSecificConfig value from extradata;
@@ -135,9 +135,9 @@ std::shared_ptr<ov::Data> AacConverter::ConvertRawToAdts(const std::shared_ptr<o
 	return adts_data;
 }
 
-std::shared_ptr<const ov::Data> AacConverter::ConvertAdtsToRaw(const std::shared_ptr<const ov::Data> &data, std::vector<size_t> *length_list)
+std::shared_ptr<ov::Data> AacConverter::ConvertAdtsToRaw(const std::shared_ptr<const ov::Data> &data, std::vector<size_t> *length_list)
 {
-	auto raw_data = std::make_shared<ov::Data>();
+	auto raw_data = std::make_shared<ov::Data>(data->GetLength());
 	size_t remained = data->GetLength();
 	off_t offset = 0L;
 	auto buffer = data->GetDataAs<uint8_t>();

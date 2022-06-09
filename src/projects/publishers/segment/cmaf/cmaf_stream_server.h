@@ -17,7 +17,7 @@ class CmafStreamServer : public DashStreamServer, public ChunkedTransferInterfac
 public:
 	PublisherType GetPublisherType() const noexcept override
 	{
-		return PublisherType::LlDash;
+		return PublisherType::LLDash;
 	}
 
 	const char *GetPublisherName() const noexcept override
@@ -47,13 +47,13 @@ protected:
 		uint32_t sequence_number = 0U;
 		uint64_t duration_in_msec = 0U;
 		std::shared_ptr<ov::Data> chunked_data;
-		std::vector<std::shared_ptr<http::svr::HttpConnection>> client_list;
+		std::vector<std::shared_ptr<http::svr::HttpExchange>> client_list;
 	};
 
 	//--------------------------------------------------------------------
 	// Overriding functions of DashStreamServer
 	//--------------------------------------------------------------------
-	http::svr::ConnectionPolicy ProcessSegmentRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+	bool ProcessSegmentRequest(const std::shared_ptr<http::svr::HttpExchange> &client,
 													  const SegmentStreamRequestInfo &request_info, SegmentType segment_type) override;
 
 	//--------------------------------------------------------------------

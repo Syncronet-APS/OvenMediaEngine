@@ -66,7 +66,7 @@ namespace pub
 					else
 					{
 						// This provider is diabled
-						logti("%s publisher is disabled in %s application, so it was not created", 
+						logtw("%s publisher is disabled in %s application, so it was not created", 
 								::StringFromPublisherType(GetPublisherType()).CStr(), app_info.GetName().CStr());
 						return true;
 					}
@@ -89,7 +89,12 @@ namespace pub
 		}
 
 		// 생성한 Application을 Router와 연결하고 Start
-		_router->RegisterObserverApp(*application.get(), application);
+		if (_router->RegisterObserverApp(*application.get(), application) == false)
+		{
+			logte("Failed to register application(%s/%s) to router", GetPublisherName(), app_info.GetName().CStr());
+			return false;
+		}
+		
 
 		// Application Map에 보관
 		std::lock_guard<std::shared_mutex> lock(_application_map_mutex);
@@ -176,16 +181,17 @@ namespace pub
 
 		auto orchestrator = ocst::Orchestrator::GetInstance();
 		auto &vapp_name = vhost_app_name.ToString();
-		
+
 		ov::String pull_url;
+		ov::String desire_stream_name = stream_name;
 
 		// TODO(dimiden): This is temporalily codes, needs to be removed in the future
-		// Orchestrator::RequestPullStream should receive ov::Url instead of rtsp_uri in the future and 
+		// Orchestrator::RequestPullStream should receive ov::Url instead of rtsp_uri in the future and
 		// extract rtsp_uri by itself according to the configuration.
-		if(	vapp_name.HasSuffix("#rtsp_live") || vapp_name.HasSuffix("#rtsp_playback") ||
+		if (vapp_name.HasSuffix("#rtsp_live") || vapp_name.HasSuffix("#rtsp_playback") ||
 			vapp_name.HasSuffix("#rtsp_live_insecure") || vapp_name.HasSuffix("#rtsp_playback_insecure"))
 		{
-			if(request_from != nullptr)
+			if (request_from != nullptr)
 			{
 				auto &query_map = request_from->QueryMap();
 				auto rtsp_uri_item = query_map.find("rtspURI");
@@ -205,17 +211,39 @@ namespace pub
 				}
 			}
 		}
-		
-		if(pull_url.IsEmpty())
+#if 0
+		//	Unit test code for pull request
+		else
 		{
-			if(orchestrator->RequestPullStream(request_from, vhost_app_name, stream_name) == false)
+			if (request_from != nullptr)
+			{
+				auto &query_map = request_from->QueryMap();
+				auto pull_uri_item = query_map.find("pullURI");
+				if (pull_uri_item != query_map.end())
+				{
+					pull_url = pull_uri_item->second;
+				}
+
+				auto target_stream_item = query_map.find("targetStream");
+				if (target_stream_item != query_map.end())
+				{
+					desire_stream_name = target_stream_item->second;
+					logtd("Replace source stream name %s to %s", stream_name.CStr(), desire_stream_name.CStr());
+				}
+			}
+		}
+#endif
+
+		if (pull_url.IsEmpty())
+		{
+			if(orchestrator->RequestPullStream(request_from, vhost_app_name, desire_stream_name) == false)
 			{
 				return nullptr;
 			}
 		}
 		else
 		{
-			if(orchestrator->RequestPullStream(request_from, vhost_app_name, stream_name, pull_url) == false)
+			if(orchestrator->RequestPullStream(request_from, vhost_app_name, desire_stream_name, pull_url) == false)
 			{
 				return nullptr;
 			}
@@ -258,6 +286,43 @@ namespace pub
 		}
 
 		return nullptr;
+	}
+
+	bool Publisher::IsAccessControlEnabled(const std::shared_ptr<const ov::Url> &request_url)
+	{
+		auto orchestrator = ocst::Orchestrator::GetInstance();
+		auto vhost_name = orchestrator->GetVhostNameFromDomain(request_url->Host());
+
+		if (vhost_name.IsEmpty())
+		{
+			return false;
+		}
+
+		auto item = ocst::Orchestrator::GetInstance()->GetHostInfo(vhost_name);
+		if (item.has_value())
+		{
+			auto vhost_item = item.value();
+
+			auto &webhooks_config = vhost_item.GetAdmissionWebhooks();
+			auto &signed_policy_config = vhost_item.GetSignedPolicy();
+			if (webhooks_config.IsParsed() == true)
+			{
+				if (webhooks_config.IsEnabledPublisher(GetPublisherType()) == true)
+				{
+					return true;
+				}
+			}
+
+			if (signed_policy_config.IsParsed() == true)
+			{
+				if (signed_policy_config.IsEnabledPublisher(GetPublisherType()) == true)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	std::tuple<AccessController::VerificationResult, std::shared_ptr<const SignedPolicy>> Publisher::VerifyBySignedPolicy(const std::shared_ptr<const ov::Url> &request_url, const std::shared_ptr<ov::SocketAddress> &client_address)

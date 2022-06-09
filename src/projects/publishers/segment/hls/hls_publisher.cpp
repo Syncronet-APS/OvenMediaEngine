@@ -35,7 +35,7 @@ bool HlsPublisher::Start()
 
 	if (hls_config.IsParsed() == false)
 	{
-		logti("%s is disabled by configuration", GetPublisherName());
+		logtw("%s is disabled by configuration", GetPublisherName());
 		return true;
 	}
 
@@ -44,7 +44,7 @@ bool HlsPublisher::Start()
 	worker_count = is_parsed ? worker_count : HTTP_SERVER_USE_DEFAULT_COUNT;
 
 	return SegmentPublisher::Start(hls_config.GetPort(), hls_config.GetTlsPort(),
-								   std::make_shared<HlsStreamServer>(), worker_count);
+								   std::make_shared<HlsStreamServer>(), false, worker_count);
 }
 
 std::shared_ptr<pub::Application> HlsPublisher::OnCreatePublisherApplication(const info::Application &application_info)

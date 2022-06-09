@@ -14,7 +14,7 @@
 // Major changes
 #define OME_VERSION_MAJOR               0
 // Minor changes
-#define OME_VERSION_MINOR               13
+#define OME_VERSION_MINOR               14
 // Micro changes
 #define OME_VERSION_MICRO               2
 

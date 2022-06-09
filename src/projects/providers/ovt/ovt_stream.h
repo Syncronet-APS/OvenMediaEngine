@@ -23,12 +23,16 @@ namespace pvd
 	class OvtStream : public pvd::PullStream, public OvtPacketizerInterface
 	{
 	public:
-		static std::shared_ptr<OvtStream> Create(const std::shared_ptr<pvd::PullApplication> &application, const uint32_t stream_id, const ov::String &stream_name,	const std::vector<ov::String> &url_list);
+		static std::shared_ptr<OvtStream> Create(const std::shared_ptr<pvd::PullApplication> &application, const uint32_t stream_id, const ov::String &stream_name,	const std::vector<ov::String> &url_list, std::shared_ptr<pvd::PullStreamProperties> properties);
 
-		OvtStream(const std::shared_ptr<pvd::PullApplication> &application, const info::Stream &stream_info, const std::vector<ov::String> &url_list);
+		OvtStream(const std::shared_ptr<pvd::PullApplication> &application, const info::Stream &stream_info, const std::vector<ov::String> &url_list, std::shared_ptr<pvd::PullStreamProperties> properties);
 		~OvtStream() final;
 
 		bool OnOvtPacketized(std::shared_ptr<OvtPacket> &packet) override;
+
+		ProcessMediaEventTrigger GetProcessMediaEventTriggerMode() override {
+			return ProcessMediaEventTrigger::TRIGGER_EPOLL;
+		}
 
 		int GetFileDescriptorForDetectingEvent() override;
 		// If this stream belongs to the Pull provider, 
@@ -79,5 +83,7 @@ namespace pvd
 		std::shared_ptr<OvtPacketizer>	_packetizer;
 		OvtDepacketizer _depacketizer;
 		std::shared_ptr<mon::StreamMetrics> _stream_metrics;
+
+		 std::map<int32_t,uint32_t> _last_msid_map;
 	};
 }

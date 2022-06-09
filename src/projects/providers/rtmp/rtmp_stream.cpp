@@ -1095,6 +1095,13 @@ namespace pvd
 		{
 			OnAmfMetaData(message->header, document, 2);
 		}
+		else if (message_name == RTMP_CMD_DATA_ONMETADATA &&
+				document.GetProperty(1) != nullptr &&
+				(document.GetProperty(1)->GetType() == AmfDataType::Object ||
+			 	document.GetProperty(1)->GetType() == AmfDataType::Array))
+		{
+			OnAmfMetaData(message->header, document, 1);
+		}
 		else if (message_name == RTMP_CMD_NAME_ONFI)
 		{
 			// Not support yet
@@ -1270,7 +1277,7 @@ namespace pvd
 															 packet_type);
 
 			SendFrame(video_frame);
-
+			
 			// Statistics for debugging
 			if (flv_video.FrameType() == FlvVideoFrameTypes::KEY_FRAME)
 			{

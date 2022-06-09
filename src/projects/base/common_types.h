@@ -30,11 +30,19 @@ enum class StreamSourceType : int8_t
 	WebRTC,
 	Ovt,
 	Rtmp,
+	RtmpPull,
 	Rtsp,
 	RtspPull,
 	Mpegts,
 	Srt,
 	Transcoder,
+	File,
+};
+
+enum class StreamRepresentationType : int8_t 
+{
+	Source,
+	Relay
 };
 
 enum class ProviderStreamDirection : int8_t
@@ -42,6 +50,7 @@ enum class ProviderStreamDirection : int8_t
 	Pull,
 	Push
 };
+
 
 // Note : If you update ProviderType, you have to update /base/ovlibrary/converter.h:ToString(ProviderType type)
 enum class ProviderType : int8_t
@@ -53,7 +62,8 @@ enum class ProviderType : int8_t
 	Ovt,
 	Mpegts,
 	WebRTC,
-	Srt
+	Srt,
+	File,
 };
 
 // Note : If you update PublisherType, you have to update /base/ovlibrary/converter.h:ToString(PublisherType type)
@@ -65,7 +75,8 @@ enum class PublisherType : int8_t
 	RtmpPush,
 	Hls,
 	Dash,
-	LlDash,
+	LLDash,
+	LLHls,
 	Ovt,
 	File,
 	Thumbnail,
@@ -267,6 +278,8 @@ static ov::String StringFromStreamSourceType(const StreamSourceType &type)
 			return "Ovt";
 		case StreamSourceType::Rtmp:
 			return "Rtmp";
+		case StreamSourceType::RtmpPull:
+			return "RtmpPull";			
 		case StreamSourceType::Rtsp:
 			return "Rtsp";
 		case StreamSourceType::RtspPull:
@@ -277,6 +290,21 @@ static ov::String StringFromStreamSourceType(const StreamSourceType &type)
 			return "SRT";
 		case StreamSourceType::Mpegts:
 			return "MPEGTS";
+		case StreamSourceType::File:
+			return "File";			
+	}
+
+	return "Unknown";
+}
+
+static ov::String StringFromStreamRepresentationType(const StreamRepresentationType &type)
+{
+	switch (type)
+	{
+		case StreamRepresentationType::Relay:
+			return "Relay";
+		case StreamRepresentationType::Source:
+			return "Source";			
 	}
 
 	return "Unknown";
@@ -302,6 +330,8 @@ static ov::String StringFromProviderType(const ProviderType &type)
 			return "WebRTC";
 		case ProviderType::Srt:
 			return "SRT";
+		case ProviderType::File:
+			return "File";			
 	}
 
 	return "Unknown";
@@ -324,8 +354,10 @@ static ov::String StringFromPublisherType(const PublisherType &type)
 			return "HLS";
 		case PublisherType::Dash:
 			return "DASH";
-		case PublisherType::LlDash:
+		case PublisherType::LLDash:
 			return "LLDASH";
+		case PublisherType::LLHls:
+			return "LLHLS";
 		case PublisherType::Ovt:
 			return "OVT";
 		case PublisherType::File:
@@ -386,3 +418,4 @@ static ov::String StringFromMediaType(const cmn::MediaType &type)
 			return "Unknown";
 	}
 }
+

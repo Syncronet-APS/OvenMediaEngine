@@ -48,10 +48,8 @@ namespace info
 		_app_info = stream._app_info;
 		_origin_stream = stream._origin_stream;
 
-		for (auto &track : stream._tracks)
-		{
-			AddTrack(track.second);
-		}
+		_tracks = stream._tracks;
+		_renditions = stream._renditions;
 	}
 
 	Stream::Stream(StreamSourceType source)
@@ -171,9 +169,26 @@ namespace info
 		return _source_type;
 	}
 
-	bool Stream::AddTrack(std::shared_ptr<MediaTrack> track)
+	StreamRepresentationType Stream::GetRepresentationType() const {
+		return _representation_type;		
+	}
+	
+	void Stream::SetRepresentationType(const StreamRepresentationType &type) {
+		_representation_type = type;
+	}
+
+	bool Stream::AddTrack(const std::shared_ptr<MediaTrack> &track)
 	{
-		return _tracks.insert(std::make_pair(track->GetId(), track)).second;
+		// If there is an existing track with the same track id, it will be deleted.
+		auto item = _tracks.find(track->GetId());
+		if (item != _tracks.end())
+		{
+			_tracks.erase(item);
+		}
+
+		auto result = _tracks.insert(std::make_pair(track->GetId(), track)).second;
+
+		return result;
 	}
 
 	const std::shared_ptr<MediaTrack> Stream::GetTrack(int32_t id) const
@@ -187,9 +202,34 @@ namespace info
 		return item->second;
 	}
 
+	// Get Track by name
+	const std::shared_ptr<MediaTrack> Stream::GetTrack(const ov::String &name) const
+	{
+		for (auto &item : _tracks)
+		{
+			if (item.second->GetName() == name)
+			{
+				return item.second;
+			}
+		}
+
+		return nullptr;
+	}
+
 	const std::map<int32_t, std::shared_ptr<MediaTrack>> &Stream::GetTracks() const
 	{
 		return _tracks;
+	}
+
+	bool Stream::AddRendition(const std::shared_ptr<Rendition> &rendition)
+	{
+		_renditions.push_back(rendition);
+		return true;
+	}
+
+	const std::vector<std::shared_ptr<Rendition>> &Stream::GetRenditions() const
+	{
+		return _renditions;
 	}
 
 	const char *Stream::GetApplicationName()
@@ -204,8 +244,8 @@ namespace info
 
 	ov::String Stream::GetInfoString()
 	{
-		ov::String out_str = ov::String::FormatString("\n[Stream Info]\nid(%u), msid(%u), output(%s), SourceType(%s), Created Time (%s) UUID(%s)\n",
-													  GetId(), GetMsid(), GetName().CStr(), ::StringFromStreamSourceType(_source_type).CStr(),
+		ov::String out_str = ov::String::FormatString("\n[Stream Info]\nid(%u), msid(%u), output(%s), SourceType(%s), RepresentationType(%s), Created Time (%s) UUID(%s)\n",
+													  GetId(), GetMsid(), GetName().CStr(), ::StringFromStreamSourceType(_source_type).CStr(), ::StringFromStreamRepresentationType(_representation_type).CStr(),
 													  ov::Converter::ToString(_created_time).CStr(), GetUUID().CStr());
 		if (GetLinkedInputStream() != nullptr)
 		{

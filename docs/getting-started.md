@@ -6,25 +6,29 @@ OvenMediaEngine supports the Docker image from [AirenSoft's Docker Hub](https://
 
 ```
 docker run -d \
--p 1935:1935 -p 4000-4005:4000-4005/udp -p 3333:3333 -p 3478:3478 -p 8080:8080 -p 9000:9000 -p 9999:9999/udp -p 10006-10010:10006-10010/udp \
+-p 1935:1935 -p 4000:4000/udp -p 3333:3333 -p 3334:3334 -p 3478:3478 -p 9000:9000 -p 9999:9999/udp \
 airensoft/ovenmediaengine:dev
 ```
+
+{% hint style="warning" %}
+To use TLS, you must set up a certificate. See [TLS Encryption](configuration/tls-encryption.md) for more information.
+{% endhint %}
 
 You can set the following environment variables.
 
 ### Ports
 
-| Env                      | Default Value      |
-| ------------------------ | ------------------ |
-| OME\_ORIGIN\_PORT        | 9000               |
-| OME\_RTMP\_PROV\_PORT    | 1935               |
-| OME\_SRT\_PROV\_PORT     | 9999/udp           |
-| OME\_MPEGTS\_PROV\_PORT  | 4000-4005/udp      |
-| OME\_HLS\_PUB\_PORT      | 8080               |
-| OME\_DASH\_PUB\_PORT     | 8080               |
-| OME\_TCP\_RELAY\_ADDRESS | \*:3478            |
-| OME\_ICE\_CANDIDATES     | \*:10006-10010/udp |
-| OME\_SIGNALLING\_PORT    | 3333               |
+| Env                                | Default Value |
+| ---------------------------------- | ------------- |
+| OME\_ORIGIN\_PORT                  | 9000          |
+| OME\_RTMP\_PROV\_PORT              | 1935          |
+| OME\_SRT\_PROV\_PORT               | 9999/udp      |
+| OME\_MPEGTS\_PROV\_PORT            | 4000/udp      |
+| OME\_LLHLS\_STREAM\_PORT           | 3333          |
+| OME\_LLHLS\_STREAM\_TLS\_PORT      | 3334          |
+| OME\_WEBRTC\_SIGNALLING\_PORT      | 3333          |
+| OME\_WEBRTC\_SIGNALLING\_TLS\_PORT | 3334          |
+| OME\_TCP\_RELAY\_ADDRESS           | \*:3478       |
 
 ## Manual Installation and Execution
 
@@ -41,7 +45,7 @@ OvenMediaEngine-master/misc/prerequisites.sh
 If the prerequisites.sh script fails, proceed with the [manual installation](troubleshooting.md#prerequisites-sh-script-failed).
 {% endhint %}
 
-### ****
+### \*\*\*\*
 
 ### **Build & Run**
 
@@ -56,7 +60,7 @@ make release
 sudo make install
 systemctl start ovenmediaengine
 # If you want automatically start on boot
-systemctl enable ovenmediaengine.service 
+systemctl enable ovenmediaengine.service 
 ```
 {% endtab %}
 
@@ -98,30 +102,34 @@ if `systemctl start ovenmediaengine` fails in Fedora, SELinux may be the cause. 
 
 ## Ports used by default
 
-The default configuration uses the following ports, so you need to open it in your firewall settings.&#x20;
+The default configuration uses the following ports, so you need to open it in your firewall settings.
 
-| Port              | Purpose                                                   |
-| ----------------- | --------------------------------------------------------- |
-| 1935/TCP          | RTMP Input                                                |
-| 9999/UDP          | SRT Input                                                 |
-| 4000-4005/UDP     | MPEG-2 TS Input                                           |
-| 9000/TCP          | Origin Server (OVT)                                       |
-| 80/TCP            | HLS & MPEG-Dash Streaming                                 |
-| 3333/TCP          | WebRTC Signalling (both ingest and streaming)             |
-| 3478/TCP          | WebRTC TCP relay (TURN Server, both ingest and streaming) |
-| 10000 - 10010/UDP | WebRTC Ice candidate (both ingest and streaming)          |
+| Port                         | Purpose                                                                                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1935/TCP                     | RTMP Input                                                                                                                               |
+| 9999/UDP                     | SRT Input                                                                                                                                |
+| 4000/UDP                     | MPEG-2 TS Input                                                                                                                          |
+| 9000/TCP                     | Origin Server (OVT)                                                                                                                      |
+| <p>3333/TCP <br>3334/TLS</p> | <p>LLHLS Streaming<br><mark style="color:red;"><strong>* Streaming over Non-TLS is not allowed with modern browsers.</strong></mark></p> |
+| <p>3333/TCP<br>3334/TLS</p>  | WebRTC Signaling (both ingest and streaming)                                                                                             |
+| 3478/TCP                     | WebRTC TCP relay (TURN Server, both ingest and streaming)                                                                                |
+| 10000 - 1005/UDP             | WebRTC Ice candidate (both ingest and streaming)                                                                                         |
+
+{% hint style="warning" %}
+To use TLS, you must set up a certificate. See [TLS Encryption](configuration/tls-encryption.md) for more information.
+{% endhint %}
 
 You can open firewall ports as in the following example:
 
 ```bash
-$ sudo firewall-cmd --add-port=80/tcp
+$ sudo firewall-cmd --add-port=3333/tcp
+$ sudo firewall-cmd --add-port=3334/tcp
 $ sudo firewall-cmd --add-port=1935/tcp
 $ sudo firewall-cmd --add-port=9999/udp
-$ sudo firewall-cmd --add-port=4000-4005/udp
-$ sudo firewall-cmd --add-port=3333/tcp
+$ sudo firewall-cmd --add-port=4000/udp
 $ sudo firewall-cmd --add-port=3478/tcp
 $ sudo firewall-cmd --add-port=9000/tcp
-$ sudo firewall-cmd --add-port=10000-10010/udp
+$ sudo firewall-cmd --add-port=10000-10005/udp
 ```
 
 ## Hello Sub-Second Latency Streaming
@@ -137,7 +145,7 @@ The meanings of each item are as follows:
 * `<Server IP>`: IP address or domain of the OvenMediaEngine server.
 * `<RTMP Port>`: You can use `<Port>` of `<Provider>` in the above `Server.xml` file. With the default configuration, the RTMP default port (1935) is used. Also, by setting the default port, you can omit the port.
 * `<Application name>`: This value corresponds to `<Name>` of `<Application>` in `conf/Server.xml`. If you use the default configuration, you can use the `app`.
-* `<Stream name>`:  Name of the stream you defined.
+* `<Stream name>`: Name of the stream you defined.
 
 After you enter the above RTMP URL into the encoder and start publishing, you will have an environment in which the player can view the live stream.
 
@@ -171,7 +179,7 @@ The server address in OBS needs to use `<Application name>` generated in `Server
 * Click "File" in the top menu, then click "Settings" (or press "Settings" on the lower right).
 * Select the "Stream" tab and enter your stream information.
 
-![Press "Service" and select "Custom", your OBS is the same as this image.](<.gitbook/assets/image (8) (1).png>)
+![Press "Service" and select "Custom", your OBS is the same as this image.](<.gitbook/assets/image (8).png>)
 
 * Go to the "Output" tab.
 * Set the following entries.
@@ -196,9 +204,9 @@ Please note that WebRTC Signalling URL is similar to the RTMP URL and consists o
 
 * `ws://<Server IP>:[<Signalling Port>/<Application name>/<Output Stream name>[?transport=tcp]`
   * `<Server IP>`: IP address or domain of the OvenMediaEngine server.
-  * `<Signalling Port>`: You can use the value of `<Signalling><ListenPort>` in `Server.xml` above. If you use the default configuration, the WebRTC Signalling default port (3333) is used.&#x20;
+  * `<Signalling Port>`: You can use the value of `<Signalling><ListenPort>` in `Server.xml` above. If you use the default configuration, the WebRTC Signalling default port (3333) is used.
   * `<Application name>`: This value corresponds to `<Name>` of `<Application>` in `conf/Server.xml`. If you use the default configuration, you can use the `app`.
-  * `<Output Stream name>`: You have to use an output stream name for streaming. If you use the default configuration, an output stream named `<Stream Name>`  is automatically generated when the stream is input.
+  * `<Output Stream name>`: You have to use an output stream name for streaming. If you use the default configuration, an output stream named `<Stream Name>` is automatically generated when the stream is input.
   * `?transport=tcp` : You can use this query string to play through webrtc over tcp. Useful in environments with severe packet loss.
 
 {% hint style="warning" %}
@@ -206,21 +214,15 @@ As of version 0.10.4, the default output stream name has been changed from **\<I
 {% endhint %}
 
 {% hint style="info" %}
-&#x20;If you use the default configuration, the RTMP publishing URL is `rtmp://192.168.0.1:1935/app/stream`
+If you use the default configuration and the RTMP publishing URL is `rtmp://192.168.0.1:1935/app/stream`
 
-Then the WebRTC URL will be`ws://192.168.0.1:3333/app/stream`
+then the WebRTC URL will be`ws://192.168.0.1:3333/app/stream`
 {% endhint %}
 
 {% hint style="info" %}
-In addition,&#x20;
+In addition,
 
-WebRTC over TCP URL will be ws://192.168.0.1:3333/app/stream?**transport=tcp**
-
-HLS streaming URL will be`http://192.168.0.1:8080/app/stream/playlist.m3u8`
-
-MPEG-DASH streaming URL will be`http://192.168.0.1:8080/app/stream/manifest.mpd`
-
-Low-Latency MPEG-DASH streaming URL will be `http://192.168.0.1:8080/app/stream/manifest_ll.mpd`
+LLHLS streaming URL will be`https://domain:3334/app/stream/llhls.m3u8`
 {% endhint %}
 
 If you want to build OvenPlayer in your environment, see [OvenPlayer QuickStart](https://github.com/AirenSoft/OvenPlayer#quick-start).

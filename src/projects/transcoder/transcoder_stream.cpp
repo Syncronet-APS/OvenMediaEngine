@@ -309,6 +309,16 @@ std::shared_ptr<info::Stream> TranscoderStream::CreateOutputStream(const cfg::vh
 	}
 	stream->SetName(name);
 
+	bool is_parsed = false;
+	auto renditions = cfg_output_profile.GetRenditions(&is_parsed);
+	if (is_parsed)
+	{
+		for (const auto &rendition : renditions.GetRenditionList())
+		{
+			stream->AddRendition(std::make_shared<Rendition>(rendition.GetName(), rendition.GetVideoName(), rendition.GetAudioName()));
+		}
+	}
+
 	return stream;
 }
 
@@ -320,16 +330,30 @@ std::shared_ptr<MediaTrack> TranscoderStream::CreateOutputTrack(const std::share
 
 	output_track->SetMediaType(cmn::MediaType::Video);
 	output_track->SetId(NewTrackId(output_track->GetMediaType()));
+	output_track->SetName(profile.GetName());
 
 	if (profile.IsBypass() == true)
 	{
 		output_track->SetBypass(true);
 		output_track->SetCodecId(input_track->GetCodecId());
-		output_track->SetBitrate(input_track->GetBitrate());
 		output_track->SetWidth(input_track->GetWidth());
 		output_track->SetHeight(input_track->GetHeight());
 		output_track->SetFrameRate(input_track->GetFrameRate());
 		output_track->SetTimeBase(input_track->GetTimeBase());
+
+		bool is_parsed;
+		profile.GetBitrateString(&is_parsed);
+		if (is_parsed == true)
+		{
+			// If bitrates information is not provided in the input stream or if it is ABR, 
+			// the user can input information manually and use it. 
+			// Bitrates information is essential in ABR.
+			output_track->SetBitrate(profile.GetBitrate());
+		}
+		else
+		{
+			output_track->SetBitrate(input_track->GetBitrate());
+		}
 	}
 	else
 	{
@@ -385,21 +409,35 @@ std::shared_ptr<MediaTrack> TranscoderStream::CreateOutputTrack(const std::share
 
 	output_track->SetMediaType(cmn::MediaType::Audio);
 	output_track->SetId(NewTrackId(output_track->GetMediaType()));
+	output_track->SetName(profile.GetName());
 
 	if (profile.IsBypass() == true)
 	{
 		output_track->SetBypass(true);
 		output_track->SetCodecId(input_track->GetCodecId());
-		output_track->SetBitrate(input_track->GetBitrate());
 		output_track->SetChannel(input_track->GetChannel());
 		output_track->GetSample().SetFormat(input_track->GetSample().GetFormat());
 		output_track->SetTimeBase(input_track->GetTimeBase());
-		output_track->SetSampleRate(input_track->GetTimeBase().GetDen());
+		output_track->SetSampleRate(input_track->GetSampleRate());
 
 		if (output_track->GetCodecId() == cmn::MediaCodecId::Opus && output_track->GetSampleRate() != 48000)
 		{
 			logtw("OPUS codec only supports 48000Hz samplerate. Do not create bypass track");
 			return nullptr;
+		}
+
+		bool is_parsed;
+		profile.GetBitrateString(&is_parsed);
+		if (is_parsed == true)
+		{
+			// If bitrates information is not provided in the input stream or if it is ABR, 
+			// the user can input information manually and use it. 
+			// Bitrates information is essential in ABR.
+			output_track->SetBitrate(profile.GetBitrate());
+		}
+		else
+		{
+			output_track->SetBitrate(input_track->GetBitrate());
 		}
 	}
 	else
@@ -478,7 +516,7 @@ int32_t TranscoderStream::CreateOutputStreams()
 
 					output_stream->AddTrack(output_track);
 
-					AppendTrackMap(GetIdentifiedForVideoProfile(profile), _input_stream, input_track, output_stream, output_track);
+					AppendTrackMap(GetIdentifiedForVideoProfile( input_track_id, profile), _input_stream, input_track, output_stream, output_track);
 				}
 
 				// Image Profile
@@ -493,7 +531,7 @@ int32_t TranscoderStream::CreateOutputStreams()
 
 					output_stream->AddTrack(output_track);
 
-					AppendTrackMap(GetIdentifiedForImageProfile(profile), _input_stream, input_track, output_stream, output_track);
+					AppendTrackMap(GetIdentifiedForImageProfile(input_track_id, profile), _input_stream, input_track, output_stream, output_track);
 				}
 			}
 			else if (input_track->GetMediaType() == cmn::MediaType::Audio)
@@ -510,7 +548,7 @@ int32_t TranscoderStream::CreateOutputStreams()
 
 					output_stream->AddTrack(output_track);
 
-					AppendTrackMap(GetIdentifiedForAudioProfile(profile), _input_stream, input_track, output_stream, output_track);
+					AppendTrackMap(GetIdentifiedForAudioProfile(input_track_id, profile), _input_stream, input_track, output_stream, output_track);
 				}
 			}
 			else
@@ -524,7 +562,7 @@ int32_t TranscoderStream::CreateOutputStreams()
 		// Add to Output Stream List. The key is the output stream name.
 		_output_streams.insert(std::make_pair(output_stream->GetName(), output_stream));
 
-		logti("[%s/%s(%u)] -> [%s/%s(%u)] Output stream has been created.",
+		logti("[%s/%s(%u)] -> [%s/%s(%u)] Output stream has been created",
 			  _application_info.GetName().CStr(), _input_stream->GetName().CStr(), _input_stream->GetId(),
 			  _application_info.GetName().CStr(), output_stream->GetName().CStr(), output_stream->GetId());
 
@@ -627,9 +665,9 @@ int32_t TranscoderStream::CreateStageMapping()
 		}
 
 		// for debug log
-		temp_debug_msg.AppendFormat(" - Encode Profile(%s:%s) / Flow InputTrack[%d] => Decoder[%d] => Filter[%d] => Encoder[%d] => OutputTraks%s\n",
-									encode_profile_name.CStr(),
+		temp_debug_msg.AppendFormat(" - Encode Profile(%s/%s) : InputTrack[%d] -> Decoder[%d] -> Filter[%d] -> Encoder[%d] -> OutputTrack[%s]\n",
 									(encode_media_type == cmn::MediaType::Video) ? "Video" : "Audio",
+									encode_profile_name.CStr(),
 									flow_context->_input_track->GetId(),
 									flow_context->_input_track->GetId(),
 									flow_context->_map_id,
@@ -643,14 +681,15 @@ int32_t TranscoderStream::CreateStageMapping()
 	return created_stage_map;
 }
 
-ov::String TranscoderStream::GetIdentifiedForVideoProfile(const cfg::vhost::app::oprf::VideoProfile &profile)
+ov::String TranscoderStream::GetIdentifiedForVideoProfile(const uint32_t track_id, const cfg::vhost::app::oprf::VideoProfile &profile)
 {
 	if (profile.IsBypass() == true)
 	{
-		return ov::String::FormatString("_bypass_");
+		return ov::String::FormatString("T%d_PBYPASS", track_id);
 	}
 
-	return ov::String::FormatString("%s-%d-%.02f-%d-%d",
+	return ov::String::FormatString("T%d_P%s-%d-%.02f-%d-%d",
+									track_id,
 									profile.GetCodec().CStr(),
 									profile.GetBitrate(),
 									profile.GetFramerate(),
@@ -658,23 +697,25 @@ ov::String TranscoderStream::GetIdentifiedForVideoProfile(const cfg::vhost::app:
 									profile.GetHeight());
 }
 
-ov::String TranscoderStream::GetIdentifiedForImageProfile(const cfg::vhost::app::oprf::ImageProfile &profile)
+ov::String TranscoderStream::GetIdentifiedForImageProfile(const uint32_t track_id, const cfg::vhost::app::oprf::ImageProfile &profile)
 {
-	return ov::String::FormatString("%s-%.02f-%d-%d",
+	return ov::String::FormatString("T%d_P%s-%.02f-%d-%d",
+									track_id,
 									profile.GetCodec().CStr(),
 									profile.GetFramerate(),
 									profile.GetWidth(),
 									profile.GetHeight());
 }
 
-ov::String TranscoderStream::GetIdentifiedForAudioProfile(const cfg::vhost::app::oprf::AudioProfile &profile)
+ov::String TranscoderStream::GetIdentifiedForAudioProfile(const uint32_t track_id, const cfg::vhost::app::oprf::AudioProfile &profile)
 {
 	if (profile.IsBypass() == true)
 	{
-		return ov::String::FormatString("_bypass_");
+		return ov::String::FormatString("T%d_PBYPASS");
 	}
 
-	return ov::String::FormatString("%s-%d-%d-%d",
+	return ov::String::FormatString("T%d_P%s-%d-%d-%d",
+									track_id,
 									profile.GetCodec().CStr(),
 									profile.GetBitrate(),
 									profile.GetSamplerate(),
@@ -920,7 +961,7 @@ bool TranscoderStream::CreateEncoder(int32_t encoder_track_id, std::shared_ptr<T
 	auto encoder = std::move(TranscodeEncoder::CreateEncoder(output_context));
 	if (encoder == nullptr)
 	{
-		logte("%d track encoder allication failed", encoder_track_id);
+		logte("%d track encoder allocation failed", encoder_track_id);
 		return false;
 	}
 

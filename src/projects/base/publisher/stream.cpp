@@ -62,7 +62,7 @@ namespace pub
 		return true;
 	}
 
-	bool StreamWorker::AddSession(std::shared_ptr<Session> session)
+	bool StreamWorker::AddSession(const std::shared_ptr<Session> &session)
 	{
 		// Cannot add session after StreamWorker is stopped
 		if (_stop_thread_flag)
@@ -118,14 +118,31 @@ namespace pub
 		_queue_event.Notify();
 	}
 
-	std::any StreamWorker::PopStreamPacket()
+	// Send to a specific session
+	void StreamWorker::SendMessage(const std::shared_ptr<Session> &session, const std::any &message)
+	{
+		_session_message_queue.Enqueue(std::make_shared<SessionMessage>(session, message));
+		_queue_event.Notify();
+	}
+
+	std::optional<std::any> StreamWorker::PopStreamPacket()
 	{
 		if (_packet_queue.IsEmpty())
+		{
+			return std::nullopt;
+		}
+
+		return _packet_queue.Dequeue();
+	}
+
+	std::shared_ptr<StreamWorker::SessionMessage> StreamWorker::PopSessionMessage()
+	{
+		if (_session_message_queue.IsEmpty())
 		{
 			return nullptr;
 		}
 
-		auto data = _packet_queue.Dequeue();
+		auto data = _session_message_queue.Dequeue();
 		if(data.has_value())
 		{
 			return data.value();
@@ -142,19 +159,23 @@ namespace pub
 		{
 			_queue_event.Wait();
 
+			auto session_message = PopSessionMessage();
+			if (session_message != nullptr && session_message->_session != nullptr && session_message->_message.has_value())
+			{
+				session_message->_session->OnMessageReceived(session_message->_message);
+			}
+
 			auto packet = PopStreamPacket();
-			if (!packet.has_value())
-			{
-				continue;
+			if (packet.has_value())
+			{		
+				session_lock.lock();
+				for (auto const &x : _sessions)
+				{
+					auto session = x.second;
+					session->SendOutgoingData(packet.value());
+				}
+				session_lock.unlock();
 			}
-			
-			session_lock.lock();
-			for (auto const &x : _sessions)
-			{
-				auto session = std::static_pointer_cast<Session>(x.second);
-				session->SendOutgoingData(packet);
-			}
-			session_lock.unlock();
 		}
 	}
 
@@ -179,6 +200,8 @@ namespace pub
 		}
 
 		logti("%s application has started [%s(%u)] stream (MSID : %d)", GetApplicationTypeName(), GetName().CStr(), GetId(), GetMsid());
+
+		_started_time = std::chrono::system_clock::now();
 		_state = State::STARTED;
 		return true;
 	}
@@ -269,6 +292,11 @@ namespace pub
 		return true;
 	}
 
+	const std::chrono::system_clock::time_point &Stream::GetStartedTime() const
+	{
+		return _started_time;
+	}
+
 	std::shared_ptr<Application> Stream::GetApplication()
 	{
 		return _application;
@@ -313,10 +341,11 @@ namespace pub
 		std::unique_lock<std::shared_mutex> session_lock(_session_map_mutex);
 		if (_sessions.count(id) <= 0)
 		{
-			logte("Cannot find session : %u", id);
+			logtd("Cannot find session : %u", id);
 			return false;
 		}
 		_sessions.erase(id);
+
 		session_lock.unlock();
 
 		if(_worker_count > 0)
@@ -370,6 +399,20 @@ namespace pub
 			}
 		}
 	
+		return true;
+	}
+
+	bool Stream::SendMessage(const std::shared_ptr<Session> &session, const std::any &message)
+	{
+		if(_worker_count > 0)
+		{
+			GetWorkerBySessionID(session->GetId())->SendMessage(session, message);
+		}
+		else
+		{
+			session->OnMessageReceived(message);
+		}
+
 		return true;
 	}
 

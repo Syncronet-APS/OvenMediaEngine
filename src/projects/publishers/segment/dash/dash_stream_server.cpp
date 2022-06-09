@@ -28,7 +28,7 @@ bool DashStreamServer::PrepareInterceptors(
 {
 	auto time_interceptor = std::make_shared<TimeInterceptor>();
 
-	time_interceptor->Register(http::Method::All, R"(\/time)", [=](const std::shared_ptr<http::svr::HttpConnection> &client) -> http::svr::NextHandler {
+	time_interceptor->Register(http::Method::All, R"(\/time)", [=](const std::shared_ptr<http::svr::HttpExchange> &client) -> http::svr::NextHandler {
 		auto url = ov::Url::Parse(client->GetRequest()->GetUri());
 
 		if (url == nullptr)
@@ -89,38 +89,39 @@ bool DashStreamServer::PrepareInterceptors(
 	return result;
 }
 
-http::svr::ConnectionPolicy DashStreamServer::ProcessStreamRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+bool DashStreamServer::ProcessStreamRequest(const std::shared_ptr<http::svr::HttpExchange> &exchange,
 																   const SegmentStreamRequestInfo &request_info,
 																   const ov::String &file_ext)
 {
-	auto response = client->GetResponse();
+	auto response = exchange->GetResponse();
 
 	if (file_ext == DASH_PLAYLIST_EXT)
 	{
-		return ProcessPlayListRequest(client, request_info, PlayListType::Mpd);
+		return ProcessPlayListRequest(exchange, request_info, PlayListType::Mpd);
 	}
 	else if (file_ext == DASH_SEGMENT_EXT)
 	{
-		return ProcessSegmentRequest(client, request_info, SegmentType::M4S);
+		return ProcessSegmentRequest(exchange, request_info, SegmentType::M4S);
 	}
 
 	response->SetStatusCode(http::StatusCode::NotFound);
 	response->Response();
+	exchange->Release();
 
-	return http::svr::ConnectionPolicy::Closed;
+	return true;
 }
 
-http::svr::ConnectionPolicy DashStreamServer::ProcessPlayListRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+bool DashStreamServer::ProcessPlayListRequest(const std::shared_ptr<http::svr::HttpExchange> &exchange,
 																	 const SegmentStreamRequestInfo &request_info,
 																	 PlayListType play_list_type)
 {
-	auto response = client->GetResponse();
+	auto response = exchange->GetResponse();
 
 	ov::String play_list;
 
 	auto item = std::find_if(_observers.begin(), _observers.end(),
-							 [client, request_info, &play_list](std::shared_ptr<SegmentStreamObserver> &observer) -> bool {
-								 return observer->OnPlayListRequest(client, request_info, play_list);
+							 [exchange, request_info, &play_list](std::shared_ptr<SegmentStreamObserver> &observer) -> bool {
+								 return observer->OnPlayListRequest(exchange, request_info, play_list);
 							 });
 
 	if ((item == _observers.end()))
@@ -130,14 +131,16 @@ http::svr::ConnectionPolicy DashStreamServer::ProcessPlayListRequest(const std::
 			  request_info.file_name.CStr());
 		response->SetStatusCode(http::StatusCode::NotFound);
 		response->Response();
+		exchange->Release();
 
-		return http::svr::ConnectionPolicy::Closed;
+		return false;
 	}
 
 	if (response->GetStatusCode() != http::StatusCode::OK || play_list.IsEmpty())
 	{
 		response->Response();
-		return http::svr::ConnectionPolicy::Closed;
+		exchange->Release();
+		return false;
 	}
 
 	// Set HTTP header
@@ -148,17 +151,18 @@ http::svr::ConnectionPolicy DashStreamServer::ProcessPlayListRequest(const std::
 
 	response->AppendString(play_list);
 	auto sent_bytes = response->Response();
+	exchange->Release();
 
-	auto stream_info = GetStream(client);
+	auto stream_info = GetStream(exchange);
 	if (stream_info != nullptr)
 	{
 		MonitorInstance->IncreaseBytesOut(*stream_info, GetPublisherType(), sent_bytes);
 	}
 
-	return http::svr::ConnectionPolicy::Closed;
+	return true;
 }
 
-http::svr::ConnectionPolicy DashStreamServer::ProcessSegmentRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+bool DashStreamServer::ProcessSegmentRequest(const std::shared_ptr<http::svr::HttpExchange> &client,
 																	const SegmentStreamRequestInfo &request_info,
 																	SegmentType segment_type)
 {
@@ -179,7 +183,7 @@ http::svr::ConnectionPolicy DashStreamServer::ProcessSegmentRequest(const std::s
 		response->SetStatusCode(http::StatusCode::NotFound);
 		response->Response();
 
-		return http::svr::ConnectionPolicy::Closed;
+		return false;
 	}
 
 	// Set HTTP header
@@ -193,5 +197,5 @@ http::svr::ConnectionPolicy DashStreamServer::ProcessSegmentRequest(const std::s
 		MonitorInstance->IncreaseBytesOut(*stream_info, GetPublisherType(), sent_bytes);
 	}
 
-	return http::svr::ConnectionPolicy::Closed;
+	return true;
 }

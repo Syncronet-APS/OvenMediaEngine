@@ -3,6 +3,7 @@ include $(DEFAULT_VARIABLES)
 
 LOCAL_STATIC_LIBRARIES := \
 	webrtc_publisher \
+	llhls_publisher \
 	segment_publishers \
 	ovt_publisher \
 	file_publisher \
@@ -46,6 +47,7 @@ LOCAL_STATIC_LIBRARIES := \
 	jsoncpp \
 	file \
 	rtmp \
+	file_provider \
 
 # rtsp_provider 
 

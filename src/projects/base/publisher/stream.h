@@ -19,10 +19,14 @@ namespace pub
 		bool Start();
 		bool Stop();
 
-		bool AddSession(std::shared_ptr<Session> session);
+		bool AddSession(const std::shared_ptr<Session> &session);
 		bool RemoveSession(session_id_t id);
 		std::shared_ptr<Session> GetSession(session_id_t id);
 
+		// Send to a specific session
+		void SendMessage(const std::shared_ptr<Session> &session, const std::any &message);
+
+		// Send to all sessions
 		void SendPacket(const std::any &packet);
 
 	private:
@@ -30,10 +34,26 @@ namespace pub
 
 		std::map<session_id_t, std::shared_ptr<Session>> _sessions;
 		std::shared_mutex _session_map_mutex;
+		
 		ov::Semaphore _queue_event;
 
-		std::any PopStreamPacket();
+		std::optional<std::any> PopStreamPacket();
 		ov::Queue<std::any> _packet_queue;
+
+		struct SessionMessage
+		{
+			SessionMessage(const std::shared_ptr<Session> &session, const std::any &message)
+			{
+				_session = session;
+				_message = message;
+			}
+			
+			std::shared_ptr<Session> _session;
+			std::any _message;
+		};
+
+		std::shared_ptr<SessionMessage> PopSessionMessage();
+		ov::Queue<std::shared_ptr<SessionMessage>> _session_message_queue;
 
 		bool _stop_thread_flag;
 		std::thread _worker_thread;
@@ -65,6 +85,8 @@ namespace pub
 		// A child call this function to delivery packet to all sessions
 		bool BroadcastPacket(const std::any &packet);
 
+		bool SendMessage(const std::shared_ptr<Session> &session, const std::any &message);
+
 		// Child must implement this function for packetizing and call BroadcastPacket to delivery to all sessions.
 		virtual void SendVideoFrame(const std::shared_ptr<MediaPacket> &media_packet) = 0;
 		virtual void SendAudioFrame(const std::shared_ptr<MediaPacket> &media_packet) = 0;
@@ -82,10 +104,12 @@ namespace pub
 		std::shared_ptr<Application> GetApplication();
 		const char * GetApplicationTypeName();
 
-		State GetState()
+		State GetState() const
 		{
 			return _state;
 		}
+
+		const std::chrono::system_clock::time_point &GetStartedTime() const;
 
 	protected:
 		Stream(const std::shared_ptr<Application> application, const info::Stream &info);
@@ -103,6 +127,8 @@ namespace pub
 		std::shared_ptr<Application> _application;
 
 		session_id_t _last_issued_session_id;
+
+		std::chrono::system_clock::time_point _started_time;
 
 		State _state = State::CREATED;
 	};

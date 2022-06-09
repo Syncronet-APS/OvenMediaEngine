@@ -112,11 +112,12 @@ int main(int argc, char *argv[])
 
 	// Initialize Publishers
 	INIT_MODULE(webrtc_publisher, "WebRTC Publisher", WebRtcPublisher::Create(*server_config, media_router));
+	INIT_MODULE(llhls_publisher, "LLHLS Publisher", LLHlsPublisher::Create(*server_config, media_router));
 	INIT_MODULE(hls_publisher, "HLS Publisher", HlsPublisher::Create(*server_config, media_router));
 	INIT_MODULE(dash_publisher, "MPEG-DASH Publisher", DashPublisher::Create(*server_config, media_router));
 	INIT_MODULE(lldash_publisher, "Low-Latency MPEG-DASH Publisher", CmafPublisher::Create(*server_config, media_router));
 	INIT_MODULE(ovt_publisher, "OVT Publisher", OvtPublisher::Create(*server_config, media_router));
-	INIT_MODULE(file_publisher, "File Publisher", FilePublisher::Create(*server_config, media_router));
+	INIT_MODULE(file_publisher, "File Publisher", pub::FilePublisher::Create(*server_config, media_router));
 	INIT_MODULE(mpegtspush_publisher, "MpegtsPush Publisher", MpegtsPushPublisher::Create(*server_config, media_router));
 	INIT_MODULE(rtmppush_publisher, "RtmpPush Publisher", RtmpPushPublisher::Create(*server_config, media_router));
 	INIT_MODULE(thumbnail_publisher, "Thumbnail Publisher", ThumbnailPublisher::Create(*server_config, media_router));
@@ -131,6 +132,7 @@ int main(int argc, char *argv[])
 	INIT_MODULE(rtmp_provider, "RTMP Provider", pvd::RtmpProvider::Create(*server_config, media_router));
 	INIT_MODULE(ovt_provider, "OVT Provider", pvd::OvtProvider::Create(*server_config, media_router));
 	INIT_MODULE(rtspc_provider, "RTSPC Provider", pvd::RtspcProvider::Create(*server_config, media_router));
+	INIT_MODULE(file_provider, "File Provider", pvd::FileProvider::Create(*server_config, media_router));
 	// PENDING : INIT_MODULE(rtsp_provider, "RTSP Provider", pvd::RtspProvider::Create(*server_config, media_router));
 
 	auto api_server = std::make_shared<api::Server>();
@@ -165,16 +167,20 @@ int main(int argc, char *argv[])
 	RELEASE_MODULE(rtmp_provider, "RTMP Provider");
 	RELEASE_MODULE(ovt_provider, "OVT Provider");
 	RELEASE_MODULE(rtspc_provider, "RTSPC Provider");
+	RELEASE_MODULE(file_provider, "File Provider");
+	
 	// PENDING : RELEASE_MODULE(rtsp_provider, "RTSP Provider");
 
 	RELEASE_MODULE(transcoder, "Transcoder");
 
 	RELEASE_MODULE(webrtc_publisher, "WebRTC Publisher");
+	RELEASE_MODULE(llhls_publisher, "LLHLS Publisher");
 	RELEASE_MODULE(hls_publisher, "HLS Publisher");
 	RELEASE_MODULE(dash_publisher, "MPEG-DASH Publisher");
 	RELEASE_MODULE(lldash_publisher, "Low-Latency MPEG-DASH Publisher");
 	RELEASE_MODULE(ovt_publisher, "OVT Publisher");
 	RELEASE_MODULE(file_publisher, "File Publisher");
+	RELEASE_MODULE(mpegtspush_publisher, "MpegtsPush Publisher");
 	RELEASE_MODULE(rtmppush_publisher, "RtmpPush Publisher");
 	RELEASE_MODULE(thumbnail_publisher, "Thumbnail Publisher");
 

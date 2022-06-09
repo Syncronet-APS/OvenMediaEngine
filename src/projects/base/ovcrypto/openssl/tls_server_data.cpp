@@ -97,7 +97,7 @@ namespace ov
 							break;
 
 						default:
-							logte("An error occurred while accept TLS connection: error code: %d", result);
+							logtd("An error occurred while accept TLS connection: error code: %d", result);
 							return false;
 					}
 
@@ -111,7 +111,7 @@ namespace ov
 
 					if (read_data == nullptr)
 					{
-						logte("An error occurred while read TLS data");
+						logtd("An error occurred while read TLS data");
 						return false;
 					}
 
@@ -158,15 +158,52 @@ namespace ov
 		logtd("Trying to encrypt the data for TLS\n%s", plain_data->Dump(32).CStr());
 
 		size_t written_bytes = 0;
-
-		if (_tls.Write(plain_data, &written_bytes) == SSL_ERROR_NONE)
+		auto result = _tls.Write(plain_data, &written_bytes);
+		if (result == SSL_ERROR_NONE)
 		{
 			std::lock_guard lock_guard(_plain_data_mutex);
 			*cipher_data = std::move(_plain_data);
 			return true;
 		}
+		else
+		{
+			logtd("An error occurred while encrypting data: data_len(%u), error code: %d", plain_data->GetLength(), result);
+		}
 
 		return false;
+	}
+
+	TlsServerData::AlpnProtocol TlsServerData::GetSelectedAlpnProtocol() const
+	{
+		auto alpn_protocol = _tls.GetSelectedAlpnName();
+
+		// https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids
+
+		if (alpn_protocol.IsEmpty())
+		{
+			return AlpnProtocol::None;
+		}
+		else if (alpn_protocol == "h2")
+		{
+			return AlpnProtocol::Http20;
+		}
+		else if (alpn_protocol == "http/1.1")
+		{
+			return AlpnProtocol::Http11;
+		}
+		else if (alpn_protocol == "http/1.0")
+		{
+			return AlpnProtocol::Http10;
+		}
+
+		logtw("Unknown ALPN protocol: %s", alpn_protocol.CStr());
+
+		return AlpnProtocol::Unsupported;
+	}
+
+	ov::String TlsServerData::GetSelectedAlpnProtocolStr() const
+	{
+		return _tls.GetSelectedAlpnName();
 	}
 
 	ssize_t TlsServerData::OnTlsRead(Tls *tls, void *buffer, size_t length)

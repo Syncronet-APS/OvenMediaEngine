@@ -1,15 +1,15 @@
-# "Large-Scale Streaming Server with Sub-Second Latency" OvenMediaEngine
+# "Sub-Second Latency Live Streaming Server with Large-Scale and High-Definition" OvenMediaEngine
 
 
 ## What is OvenMediaEngine?
 
-In short, OvenMediaEngine (OME) is an <b>Open-Source Streaming Server</b> that enables <b>Large-Scale</b> and <b>Sub-Second Latency Live Streaming</b>.
+In short, OvenMediaEngine (OME) is a <b>Sub-Second Latency Live Streaming Server</b> with <b>Large-Scale</b> and <b>High-Definition</b>.
 
-OvenMediaEngine receives a video/audio source from encoders and cameras such as [OvenLiveKit](https://www.ovenmediaengine.com/olk), OBS, XSplit, and more to <b>WebRTC</b>, <b>RTMP</b>, <b>SRT</b>, <b>MPEG-2 TS</b> <sup><i>Beta</sup></i>, or <b>RTSP</b> <sup><i>Beta</sup></i>.  Then, OME transmits it using <b>WebRTC</b>, <b>Low Latency MPEG-DASH</b> (LLDASH), <b>MPEG-DASH</b>, and <b>HLS</b>.
+OvenMediaEngine receives a video/audio source from encoders and cameras such as [OvenLiveKit](https://www.ovenmediaengine.com/olk), OBS, XSplit, and more to <b>WebRTC</b>, <b>RTMP</b>, <b>SRT</b>, <b>MPEG-2 TS</b> <sup><i>Beta</sup></i> and <b>RTSP</b> <sup><i>Beta</sup></i>.  Then, OME transmits it over <b>LLHLS</b>(Low Latency HLS) and <b>WebRTC</b>.
 
 Like the picture below:
 <img src="dist/OME_Overview_GitHub_220117.svg" style="max-width: 100%; height: auto;">
-OvenMediaEngine supports you can create platforms/services/systems that live stream to <b>large audiences of hundreds or more</b> with <b>sub-second latency</b> and be <b>scalable</b>, depending on the number of concurrent viewers.
+OvenMediaEngine supports you can create platforms/services/systems that transmit high-definition video to hundreds-thousand viewers with sub-second latency and be scalable, depending on the number of concurrent viewers.
 
 We also provide [OvenPlayer](https://github.com/AirenSoft/OvenPlayer), an Open-Source and JavaScript-based WebRTC Player for OvenMediaEngine.
 
@@ -30,6 +30,8 @@ Would you please click on each link below for details:
 * <b>Ingest</b>
   * Push: WebRTC, RTMP, SRT, MPEG-2 TS
   * Pull: RTSP
+* <b>Low Latency HLS Streaming</b> 
+  * Support Adaptive Bitrate Streaming (ABR)
 * <b>Sub-Second Latency Streaming with WebRTC</b>
   * WebRTC over TCP (With Embedded TURN Server)
   * Embedded WebRTC Signalling Server (WebSocket based)
@@ -40,8 +42,6 @@ Would you please click on each link below for details:
     * <i>VP8, H.264</i>
   * In-band FEC (Forward Error Correction)
     * <i>Opus</i>
-* <b>Low Latency MPEG-DASH Streaming</b> (Beta)
-* <b>Legacy HLS and MPEG-DASH Streaming</b>
 * <b>Embedded Live Transcoder</b>
   * Video: VP8, H.264, Pass-through
   * Audio: Opus, AAC, Pass-through
@@ -50,11 +50,10 @@ Would you please click on each link below for details:
 * <b>Access Control</b>
   * Admission Webhooks
   * Singed Policy
-* <b>Beta</b>
-  * File Recording
-  * RTMP Push Publishing (Re-streaming)
-  * Thumbnail
-  * REST API
+* File Recording
+* RTMP Push Publishing (Re-streaming)
+* Thumbnail
+* <b>REST API<b>
 * <b>Experiment</b>
   * P2P Traffic Distribution (Only WebRTC)
 
@@ -77,12 +76,11 @@ We have tested OvenMediaEngine on the platforms listed below. However, we think 
 docker run -d \
 -p 1935:1935 \
 -p 3333:3333 \
+-p 3334:3334 \
 -p 3478:3478 \
--p 8080:8080 \
 -p 9000:9000 \
 -p 9999:9999/udp \
--p 4000-4005:4000-4005/udp \
--p 10006-10010:10006-10010/udp \
+-p 4000:4000/udp \
 --name ovenmediaengine \
 airensoft/ovenmediaengine:latest
 ```
@@ -93,12 +91,11 @@ You can also store the configuration files on your host:
 docker run -d \
 -p 1935:1935 \
 -p 3333:3333 \
+-p 3334:3334 \
 -p 3478:3478 \
--p 8080:8080 \
 -p 9000:9000 \
 -p 9999:9999/udp \
--p 4000-4005:4000-4005/udp \
--p 10006-10010:10006-10010/udp \
+-p 4000:4000/udp \
 -v ome-origin-conf:/opt/ovenmediaengine/bin/origin_conf \
 -v ome-edge-conf:/opt/ovenmediaengine/bin/edge_conf \
 --name ovenmediaengine \

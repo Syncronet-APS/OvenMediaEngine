@@ -10,6 +10,9 @@
 
 #include "video_track.h"
 #include "audio_track.h"
+
+#define VALID_BITRATE_CALCULATION_THRESHOLD_MSEC (2000)
+
 class MediaTrack : public VideoTrack, public AudioTrack
 {
 public:
@@ -20,6 +23,10 @@ public:
 	// Track ID
 	void SetId(uint32_t id);
 	uint32_t GetId() const;
+
+	// Track Name (used for variant playlist)
+	void SetName(const ov::String &name);
+	ov::String GetName() const;
 
 	// Video Type Settings
 	void SetMediaType(cmn::MediaType type);
@@ -66,9 +73,14 @@ public:
 	const std::shared_ptr<ov::Data> &GetCodecExtradata() const;
 	std::shared_ptr<ov::Data> &GetCodecExtradata();
 
+	// For statistics
+	void OnFrameAdded(uint64_t bytes);
+
 private:
 	bool _is_valid = false;
+
 	uint32_t _id;
+	ov::String _name;
 
 	cmn::MediaCodecId _codec_id;
 	cmn::BitstreamFormat _origin_bitstream_format = cmn::BitstreamFormat::Unknown;
@@ -85,4 +97,12 @@ private:
 	int64_t _last_frame_time;
 
 	std::shared_ptr<ov::Data> _codec_extradata = nullptr;
+
+	// Statistics
+
+	// First frame received time
+	ov::StopWatch _clock_from_first_frame_received;
+
+	uint64_t _total_frame_count = 0;
+	uint64_t _total_frame_bytes = 0;
 };

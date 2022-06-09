@@ -25,7 +25,7 @@ SegmentPublisher::~SegmentPublisher()
 	logtd("Publisher has been destroyed");
 }
 
-bool SegmentPublisher::Start(const cfg::cmn::SingularPort &port_config, const cfg::cmn::SingularPort &tls_port_config, const std::shared_ptr<SegmentStreamServer> &stream_server, int worker_count)
+bool SegmentPublisher::Start(const cfg::cmn::SingularPort &port_config, const cfg::cmn::SingularPort &tls_port_config, const std::shared_ptr<SegmentStreamServer> &stream_server, bool disable_http2_force, int worker_count)
 {
 	auto server_config = GetServerConfig();
 	auto ip = server_config.GetIp();
@@ -42,7 +42,7 @@ bool SegmentPublisher::Start(const cfg::cmn::SingularPort &port_config, const cf
 	stream_server->AddObserver(SegmentStreamObserver::GetSharedPtr());
 
 	if (stream_server->Start(_server_config, has_port ? &address : nullptr, has_tls_port ? &tls_address : nullptr,
-							 DEFAULT_SEGMENT_WORKER_THREAD_COUNT, worker_count) == false)
+							 disable_http2_force, DEFAULT_SEGMENT_WORKER_THREAD_COUNT, worker_count) == false)
 	{
 		logte("An error occurred while start %s Publisher", GetPublisherName());
 		return false;
@@ -96,10 +96,11 @@ bool SegmentPublisher::OnDeleteHost(const info::Host &host_info)
 	return true;
 }
 
-bool SegmentPublisher::OnPlayListRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+bool SegmentPublisher::OnPlayListRequest(const std::shared_ptr<http::svr::HttpExchange> &client,
 										 const SegmentStreamRequestInfo &request_info,
 										 ov::String &play_list)
 {
+	auto connection = client->GetConnection();
 	auto request = client->GetRequest();
 	auto uri = request->GetUri();
 	auto parsed_url = ov::Url::Parse(uri);
@@ -155,7 +156,7 @@ bool SegmentPublisher::OnPlayListRequest(const std::shared_ptr<http::svr::HttpCo
 		}
 	}
 
-	request->SetExtra(std::static_pointer_cast<pub::Stream>(stream));
+	client->SetExtra(std::static_pointer_cast<pub::Stream>(stream));
 
 	if (stream->GetPlayList(play_list) == false)
 	{
@@ -169,7 +170,7 @@ bool SegmentPublisher::OnPlayListRequest(const std::shared_ptr<http::svr::HttpCo
 	return true;
 }
 
-bool SegmentPublisher::OnSegmentRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+bool SegmentPublisher::OnSegmentRequest(const std::shared_ptr<http::svr::HttpExchange> &client,
 										const SegmentStreamRequestInfo &request_info,
 										std::shared_ptr<const SegmentItem> &segment)
 {
@@ -206,11 +207,11 @@ bool SegmentPublisher::OnSegmentRequest(const std::shared_ptr<http::svr::HttpCon
 		  client->GetRequest()->GetRemote()->GetRemoteAddress()->ToString(false).CStr(),
 		  segment->sequence_number, segment->duration_in_ms / 1000);
 
-	client->GetRequest()->SetExtra(std::static_pointer_cast<pub::Stream>(stream));
+	client->SetExtra(std::static_pointer_cast<pub::Stream>(stream));
 
 	// The first sequence number 0 means init_video and init_audio in MPEG-DASH.
 	// These are excluded because they confuse statistical calculations.
-	if (GetPublisherType() != PublisherType::LlDash && segment->sequence_number != 0)
+	if (GetPublisherType() != PublisherType::LLDash && segment->sequence_number != 0)
 	{
 		auto segment_request_info = SegmentRequestInfo(GetPublisherType(),
 													   *std::static_pointer_cast<info::Stream>(stream),
@@ -579,7 +580,7 @@ void SegmentPublisher::UpdateWebhooksRequestInfo(const WebhooksRequestInfo &info
 }
 
 bool SegmentPublisher::HandleAccessControl(info::VHostAppName &vhost_app_name, ov::String &stream_name,
-										   const std::shared_ptr<http::svr::HttpConnection> &client, const std::shared_ptr<const ov::Url> &request_url,
+										   const std::shared_ptr<http::svr::HttpExchange> &client, const std::shared_ptr<const ov::Url> &request_url,
 										   std::shared_ptr<PlaylistRequestInfo> &request_info)
 {
 	auto request = client->GetRequest();

@@ -256,11 +256,11 @@ protected:
 	SegmentPublisher(const cfg::Server &server_config, const std::shared_ptr<MediaRouteInterface> &router);
 	~SegmentPublisher() override;
 
-	bool Start(const cfg::cmn::SingularPort &port_config, const cfg::cmn::SingularPort &tls_port_config, const std::shared_ptr<SegmentStreamServer> &stream_server, int worker_count);
+	bool Start(const cfg::cmn::SingularPort &port_config, const cfg::cmn::SingularPort &tls_port_config, const std::shared_ptr<SegmentStreamServer> &stream_server, bool disable_http2_force, int worker_count);
 	virtual bool Start() = 0;
 
 	bool HandleAccessControl(info::VHostAppName &vhost_app_name, ov::String &stream_name, 
-						const std::shared_ptr<http::svr::HttpConnection> &client, const std::shared_ptr<const ov::Url> &request_url,
+						const std::shared_ptr<http::svr::HttpExchange> &client, const std::shared_ptr<const ov::Url> &request_url,
 						std::shared_ptr<PlaylistRequestInfo> &request_info);
 
 	// Implementation of Publisher
@@ -270,11 +270,11 @@ protected:
 	//--------------------------------------------------------------------
 	// Implementation of SegmentStreamObserver
 	//--------------------------------------------------------------------
-	bool OnPlayListRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+	bool OnPlayListRequest(const std::shared_ptr<http::svr::HttpExchange> &client,
 						   const SegmentStreamRequestInfo &request_info,
 						   ov::String &play_list) override;
 
-	bool OnSegmentRequest(const std::shared_ptr<http::svr::HttpConnection> &client,
+	bool OnSegmentRequest(const std::shared_ptr<http::svr::HttpExchange> &client,
 						  const SegmentStreamRequestInfo &request_info,
 						  std::shared_ptr<const SegmentItem> &segment) override;
 

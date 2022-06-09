@@ -249,7 +249,10 @@ namespace ov
 
 	std::shared_ptr<ov::Data> Tls::Read()
 	{
-		auto data = std::make_shared<ov::Data>();
+		// lock
+		std::lock_guard lock(_ssl_lock);
+
+		auto data = std::make_shared<ov::Data>(65535);
 
 		unsigned char buf[1024];
 
@@ -260,6 +263,7 @@ namespace ov
 		{
 			int error = Read(buf, OV_COUNTOF(buf), &read_bytes);
 			bool append_data = false;
+			int read_errno = errno;
 
 			switch (error)
 			{
@@ -290,9 +294,24 @@ namespace ov
 					stop = true;
 					break;
 
+				case SSL_ERROR_SYSCALL:
+					if (read_errno == 0)
+					{
+						append_data = true;
+						stop = true;
+						break;
+					}
+
+					[[fallthrough]];
+
 				default:
+					OpensslError ssl_error;
+
 					// Another error occurred
 					OV_ASSERT(read_bytes == 0, "read_bytes must be 0, but %zu (code: %d)", read_bytes, error);
+
+					logtw("Tls::Read() returns %d (errno: %d): %s", error, read_errno, ssl_error.What());
+
 					data = nullptr;
 					stop = true;
 					break;
@@ -316,6 +335,9 @@ namespace ov
 	{
 		OV_ASSERT2(_ssl != nullptr);
 
+		// lock
+		std::lock_guard lock(_ssl_lock);
+
 		size_t write_size = 0;
 
 		do
@@ -328,7 +350,10 @@ namespace ov
 				// The write operation was not successful, because either the connection was closed,
 				// an error occurred or action must be taken by the calling process.
 				// Call SSL_get_error() with the return value ret to find out the reason.
-				return GetError(result);
+				
+				auto get_rror =  GetError(result);
+				logtd("Tls::Write()::SSL_write returns %d %d, errno: %d", result, get_rror, errno);
+				return get_rror;
 			}
 
 			write_size += static_cast<size_t>(result);
@@ -584,6 +609,16 @@ namespace ov
 	ov::String Tls::GetServerName() const
 	{
 		return ::SSL_get_servername(_ssl, TLSEXT_NAMETYPE_host_name);
+	}
+
+	ov::String Tls::GetSelectedAlpnName() const
+	{
+		const unsigned char *data = NULL;
+		unsigned int len = 0;
+
+		SSL_get0_alpn_selected(_ssl, &data, &len);
+
+		return ov::String(reinterpret_cast<const char *>(data), len);
 	}
 
 	long Tls::GetVersion() const

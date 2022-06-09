@@ -19,11 +19,12 @@ namespace ov
 		static T *GetInstance()
 		{
 			static T instance;
-
 			return &instance;
 		}
 
 	protected:
 		Singleton() = default;
+
+	private:
 	};
 }

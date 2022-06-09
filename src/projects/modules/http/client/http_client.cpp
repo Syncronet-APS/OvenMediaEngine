@@ -111,12 +111,12 @@ namespace http
 			return iterator->second;
 		}
 
-		const std::unordered_map<ov::String, ov::String, ov::CaseInsensitiveComparator> &HttpClient::GetRequestHeaders() const
+		const std::unordered_map<ov::String, ov::String, ov::CaseInsensitiveHash, ov::CaseInsensitiveEqual> &HttpClient::GetRequestHeaders() const
 		{
 			return _request_header;
 		}
 
-		std::unordered_map<ov::String, ov::String, ov::CaseInsensitiveComparator> &HttpClient::GetRequestHeaders()
+		std::unordered_map<ov::String, ov::String, ov::CaseInsensitiveHash, ov::CaseInsensitiveEqual> &HttpClient::GetRequestHeaders()
 		{
 			return _request_header;
 		}
@@ -402,7 +402,7 @@ namespace http
 			return _parser.GetHeader(key);
 		}
 
-		const std::unordered_map<ov::String, ov::String, ov::CaseInsensitiveComparator> &HttpClient::GetResponseHeaders() const
+		const std::unordered_map<ov::String, ov::String, ov::CaseInsensitiveHash, ov::CaseInsensitiveEqual> &HttpClient::GetResponseHeaders() const
 		{
 			return _parser.GetHeaders();
 		}
@@ -648,7 +648,7 @@ namespace http
 
 			while (remained > 0)
 			{
-				switch (_parser.GetParseStatus())
+				switch (_parser.GetStatus())
 				{
 					case StatusCode::OK: {
 						// Parsing is completed
@@ -676,9 +676,9 @@ namespace http
 					}
 
 					case StatusCode::PartialContent: {
-						auto processed_length = _parser.ProcessData(sub_data);
+						auto processed_length = _parser.AppendData(sub_data);
 
-						switch (_parser.GetParseStatus())
+						switch (_parser.GetStatus())
 						{
 							case StatusCode::OK:
 								// Parsing just completed
@@ -705,7 +705,7 @@ namespace http
 					default:
 						// If an error occurred when parsing before, this code should not executed under normal circumstances because it was closed after responed.
 						OV_ASSERT2(false);
-						return ov::Error::CreateError("HTTP", "Invalid parse status: %d", _parser.GetParseStatus());
+						return ov::Error::CreateError("HTTP", "Invalid parse status: %d", _parser.GetStatus());
 				}
 			}
 

@@ -23,9 +23,9 @@ public:
 	~SegmentStreamInterceptor() override;
 
 	bool Start(int thread_count, const SegmentProcessHandler &process_handler);
-	http::svr::InterceptorResult OnHttpData(const std::shared_ptr<http::svr::HttpConnection> &client, const std::shared_ptr<const ov::Data> &data) override;
 
-	bool IsInterceptorForRequest(const std::shared_ptr<const http::svr::HttpConnection> &client) override;
+	http::svr::InterceptorResult OnRequestCompleted(const std::shared_ptr<http::svr::HttpExchange> &exchange) override;
+	bool IsInterceptorForRequest(const std::shared_ptr<const http::svr::HttpExchange> &client) override;
 
 protected:
 	SegmentWorkerManager _worker_manager;

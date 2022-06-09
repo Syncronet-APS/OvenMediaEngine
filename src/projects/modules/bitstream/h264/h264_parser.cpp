@@ -66,13 +66,13 @@ bool H264Parser::CheckAnnexBKeyframe(const uint8_t *bitstream, size_t length)
 
 bool H264Parser::ParseNalUnitHeader(const uint8_t *nalu, size_t length, H264NalUnitHeader &header)
 {
-	NalUnitBitstreamParser parser(nalu, length);
-
 	if (length < H264_NAL_UNIT_HEADER_SIZE)
 	{
 		return false;
 	}
 
+	NalUnitBitstreamParser parser(nalu, H264_NAL_UNIT_HEADER_SIZE);
+	
 	return ParseNalUnitHeader(parser, header);
 }
 

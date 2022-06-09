@@ -4,13 +4,13 @@ PREFIX=/opt/ovenmediaengine
 TEMP_PATH=/tmp
 
 OME_VERSION=dev
-OPENSSL_VERSION=3.0.1
+OPENSSL_VERSION=3.0.2
 SRTP_VERSION=2.4.2
 SRT_VERSION=1.4.4
 OPUS_VERSION=1.3.1
 VPX_VERSION=1.11.0
 FDKAAC_VERSION=2.0.2
-NASM_VERSION=2.15.02
+NASM_VERSION=2.15.05
 FFMPEG_VERSION=4.4.1
 JEMALLOC_VERSION=5.2.1
 PCRE2_VERSION=10.39
@@ -163,9 +163,12 @@ install_nasm()
     (DIR=${TEMP_PATH}/nasm && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    curl -sLf http://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/nasm-${NASM_VERSION}.tar.gz | tar -xz --strip-components=1 && \
+    curl -sLf https://github.com/netwide-assembler/nasm/archive/refs/tags/nasm-${NASM_VERSION}.tar.gz | tar -xz --strip-components=1 && \
+	./autogen.sh && \
     ./configure --prefix="${PREFIX}" && \
     make -j$(nproc) && \
+	touch nasm.1 && \ # To avoid error in nasm install package
+	touch ndisasm.1 && \ # To avoid error in nasm install package
     sudo make install && \
     rm -rf ${DIR}) || fail_exit "nasm"
 }
@@ -250,7 +253,7 @@ install_ffmpeg()
     --enable-encoder=libvpx_vp8,libopus,libfdk_aac,libopenh264,mjpeg,png${ADDI_ENCODER} \
     --enable-decoder=aac,aac_latm,aac_fixed,h264,hevc,opus,vp8${ADDI_DECODER} \
     --enable-parser=aac,aac_latm,aac_fixed,h264,hevc,opus,vp8 \
-    --enable-network --enable-protocol=tcp --enable-protocol=udp --enable-protocol=rtp,file,rtmp,tls,rtmps --enable-demuxer=rtsp,flv,live_flv --enable-muxer=mp4,webm,mpegts,flv,mpjpeg \
+    --enable-network --enable-protocol=tcp --enable-protocol=udp --enable-protocol=rtp,file,rtmp,tls,rtmps --enable-demuxer=rtsp,flv,live_flv,mp4 --enable-muxer=mp4,webm,mpegts,flv,mpjpeg \
     --enable-filter=asetnsamples,aresample,aformat,channelmap,channelsplit,scale,transpose,fps,settb,asettb,format${ADDI_FILTERS} && \
     make -j$(nproc) && \
     sudo make install && \

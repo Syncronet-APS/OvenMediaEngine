@@ -34,11 +34,14 @@ namespace pvd
 	class RtspcStream : public pvd::PullStream, public RtpRtcpInterface, public ov::Node
 	{
 	public:
-		static std::shared_ptr<RtspcStream> Create(const std::shared_ptr<pvd::PullApplication> &application, const uint32_t stream_id, const ov::String &stream_name,	const std::vector<ov::String> &url_list);
+		static std::shared_ptr<RtspcStream> Create(const std::shared_ptr<pvd::PullApplication> &application, const uint32_t stream_id, const ov::String &stream_name, const std::vector<ov::String> &url_list, std::shared_ptr<pvd::PullStreamProperties> properties);
 
-		RtspcStream(const std::shared_ptr<pvd::PullApplication> &application, const info::Stream &stream_info, const std::vector<ov::String> &url_list);
+		RtspcStream(const std::shared_ptr<pvd::PullApplication> &application, const info::Stream &stream_info, const std::vector<ov::String> &url_list, std::shared_ptr<pvd::PullStreamProperties> properties);
 		~RtspcStream() final;
 
+		ProcessMediaEventTrigger GetProcessMediaEventTriggerMode() override {
+			return ProcessMediaEventTrigger::TRIGGER_EPOLL;
+		}
 		// PullStream Implementation
 		int GetFileDescriptorForDetectingEvent() override;
 		// If this stream belongs to the Pull provider, 

@@ -2,6 +2,8 @@
 
 #include "base/common_types.h"
 #include "base/info/media_track.h"
+#include "base/info/rendition.h"
+#include <config/config_manager.h>
 
 namespace info
 {
@@ -51,9 +53,16 @@ namespace info
 		uint32_t GetUptimeSec();
 		StreamSourceType GetSourceType() const;
 
-		bool AddTrack(std::shared_ptr<MediaTrack> track);
+		StreamRepresentationType GetRepresentationType() const;
+		void SetRepresentationType(const StreamRepresentationType &type);
+
+		bool AddTrack(const std::shared_ptr<MediaTrack> &track);
 		const std::shared_ptr<MediaTrack> GetTrack(int32_t id) const;
+		const std::shared_ptr<MediaTrack> GetTrack(const ov::String &name) const;
 		const std::map<int32_t, std::shared_ptr<MediaTrack>> &GetTracks() const;
+
+		bool AddRendition(const std::shared_ptr<Rendition> &rendition);
+		const std::vector<std::shared_ptr<Rendition>> &GetRenditions() const;
 
 		ov::String GetInfoString();
 		void ShowInfo();
@@ -78,11 +87,20 @@ namespace info
 		
 		// Key : MediaTrack ID
 		std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
+		std::vector<std::shared_ptr<Rendition>> _renditions;
 
 	private:
 		std::chrono::system_clock::time_point _created_time;
+
 		// Where does the stream come from?
 		StreamSourceType _source_type;
+
+		// Defines the purpose of this stream. Stream for relay? Stream for source?
+		// Source Type : [Provider -> Transcoder -> Publisher] 
+		// 		- Affected by Output Profile.
+		// Relay Type : [Provider -> Publisher] 
+		// 		- It is sent directly to the Publisher without affecting the Output Profile.
+		StreamRepresentationType _representation_type = StreamRepresentationType::Source;
 
 		std::shared_ptr<Application>	_app_info = nullptr;
 

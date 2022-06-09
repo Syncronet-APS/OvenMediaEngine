@@ -15,113 +15,122 @@
 	-->
 	<StunServer>stun.l.google.com:19302</StunServer>
 
-	<!-- Settings for the ports to bind -->
-	<Bind>
-		<!-- Enable this configuration if you want to use API Server -->
-		<!--
-		<Managers>
-			<API>
-				<Port>8081</Port>
-				<WorkerCount>1</WorkerCount>
-			</API>
-		</Managers>
+	<Modules>
+		<!-- 
+		Currently OME only supports h2 like all browsers do. Therefore, HTTP/2 only works on TLS ports.			
 		-->
+		<HTTP2>
+			<Enable>true</Enable>
+		</HTTP2>
 
-		<Providers>
-			<!-- Pull providers -->
-			<RTSPC>
-				<WorkerCount>1</WorkerCount>
-			</RTSPC>
-			<OVT>
-				<WorkerCount>1</WorkerCount>
-			</OVT>
-			<!-- Push providers -->
-			<RTMP>
-				<Port>1935</Port>
-				<WorkerCount>1</WorkerCount>
-			</RTMP>
-			<SRT>
-				<Port>9999</Port>
-				<WorkerCount>1</WorkerCount>
-			</SRT>
-			<MPEGTS>
-				<!--
-					Listen on port 4000~4005 (<Port>4000-4004,4005/udp</Port>)
-					This is just a demonstration to show that you can configure the port in several ways
-				-->
-				<Port>4000/udp</Port>
-			</MPEGTS>
-			<WebRTC>
-				<Signalling>
-					<Port>3333</Port>
-					<!-- If you want to use TLS, specify the TLS port -->
-					<!-- <TLSPort>3334</TLSPort> -->
-					<WorkerCount>1</WorkerCount>
-				</Signalling>
+		<LLHLS>
+			<Enable>true</Enable>
+		</LLHLS>
 
-				<IceCandidates>
-					<!-- 
-						If you want to stream WebRTC over TCP, specify IP:Port for TURN server.
-						This uses the TURN protocol, which delivers the stream from the built-in TURN server to the player's TURN client over TCP. 
-						For detailed information, refer https://airensoft.gitbook.io/ovenmediaengine/streaming/webrtc-publishing#webrtc-over-tcp
-					-->
-					<TcpRelay>*:3478</TcpRelay>
-					<!-- TcpForce is an option to force the use of TCP rather than UDP in WebRTC streaming. (You can omit ?transport=tcp accordingly.) If <TcpRelay> is not set, playback may fail. -->
-					<TcpForce>true</TcpForce>
+		<!-- P2P works only in WebRTC and is experiment feature -->
+		<P2P>
+			<!-- disabled by default -->
+			<Enable>false</Enable>
+			<MaxClientPeersPerHostPeer>2</MaxClientPeersPerHostPeer>
+		</P2P>
+	</Modules>
 
-					<IceCandidate>*:10000/udp</IceCandidate>
-					<TcpRelayWorkerCount>1</TcpRelayWorkerCount>
-				</IceCandidates>
-			</WebRTC>
-		</Providers>
-
-		<Publishers>
-			<OVT>
-				<Port>9000</Port>
-				<WorkerCount>1</WorkerCount>
-			</OVT>
-			<HLS>
-				<Port>80</Port>
-				<!-- If you want to use TLS, specify the TLS port -->
-				<!-- <TLSPort>443</TLSPort> -->
-				<WorkerCount>1</WorkerCount>
-			</HLS>
-			<DASH>
-				<Port>80</Port>
-				<!-- If you want to use TLS, specify the TLS port -->
-				<!-- <TLSPort>443</TLSPort> -->
-				<WorkerCount>1</WorkerCount>
-			</DASH>
-			<WebRTC>
-				<Signalling>
-					<Port>3333</Port>
-					<!-- If you want to use TLS, specify the TLS port -->
-					<!-- <TLSPort>3334</TLSPort> -->
-					<WorkerCount>1</WorkerCount>
-				</Signalling>
-				<IceCandidates>
-					<!-- 
-						If you want to stream WebRTC over TCP, specify IP:Port for TURN server.
-						This uses the TURN protocol, which delivers the stream from the built-in TURN server to the player's TURN client over TCP. 
-						For detailed information, refer https://airensoft.gitbook.io/ovenmediaengine/streaming/webrtc-publishing#webrtc-over-tcp
-					-->
-					<TcpRelay>*:3478</TcpRelay>
-					<!-- TcpForce is an option to force the use of TCP rather than UDP in WebRTC streaming. (You can omit ?transport=tcp accordingly.) If <TcpRelay> is not set, playback may fail. -->
-					<TcpForce>true</TcpForce>
-
-					<IceCandidate>*:10000/udp</IceCandidate>
-					<TcpRelayWorkerCount>1</TcpRelayWorkerCount>
-				</IceCandidates>
-			</WebRTC>
-		</Publishers>
-	</Bind>
-
-	<!-- P2P works only in WebRTC -->
+<!-- Settings for the ports to bind -->
+<Bind>
+	<!-- Enable this configuration if you want to use API Server -->
 	<!--
-	<P2P>
-		<MaxClientPeersPerHostPeer>2</MaxClientPeersPerHostPeer>
-	</P2P>
+	<Managers>
+		<API>
+			<Port>8081</Port>
+			<TLSPort>8082</TLSPort>
+			<WorkerCount>1</WorkerCount>
+		</API>
+	</Managers>
 	-->
+
+	<Providers>
+		<!-- Pull providers -->
+		<RTSPC>
+			<WorkerCount>1</WorkerCount>
+		</RTSPC>
+		<OVT>
+			<WorkerCount>1</WorkerCount>
+		</OVT>
+		<!-- Push providers -->
+		<RTMP>
+			<Port>1935</Port>
+			<WorkerCount>1</WorkerCount>
+		</RTMP>
+		<SRT>
+			<Port>9999</Port>
+			<WorkerCount>1</WorkerCount>
+		</SRT>
+		<MPEGTS>
+			<!--
+				Listen on port 4000~4005 (<Port>4000-4004,4005/udp</Port>)
+				This is just a demonstration to show that you can configure the port in several ways
+			-->
+			<Port>4000/udp</Port>
+		</MPEGTS>
+		<WebRTC>
+			<Signalling>
+				<Port>3333</Port>
+				<TLSPort>3334</TLSPort>
+				<WorkerCount>1</WorkerCount>
+			</Signalling>
+
+			<IceCandidates>
+				<IceCandidate>*:10000-10005/udp</IceCandidate>
+				<!-- 
+					If you want to stream WebRTC over TCP, specify IP:Port for TURN server.
+					This uses the TURN protocol, which delivers the stream from the built-in TURN server to the player's TURN client over TCP. 
+					For detailed information, refer https://airensoft.gitbook.io/ovenmediaengine/streaming/webrtc-publishing#webrtc-over-tcp
+				-->
+				<TcpRelay>*:3478</TcpRelay>
+				<!-- TcpForce is an option to force the use of TCP rather than UDP in WebRTC streaming. (You can omit ?transport=tcp accordingly.) If <TcpRelay> is not set, playback may fail. -->
+				<TcpForce>true</TcpForce>
+				<TcpRelayWorkerCount>1</TcpRelayWorkerCount>
+			</IceCandidates>
+		</WebRTC>
+	</Providers>
+
+	<Publishers>
+		<OVT>
+			<Port>9000</Port>
+			<WorkerCount>1</WorkerCount>
+		</OVT>
+		<LLHLS>
+			<!-- 
+			OME only supports h2, so LLHLS works over HTTP/1.1 on non-TLS ports. 
+			LLHLS works with higher performance over HTTP/2, 
+			so it is recommended to use a TLS port.
+			-->
+			<Port>3333</Port>
+			<!-- If you want to use TLS, specify the TLS port -->
+			<TLSPort>3334</TLSPort>
+			<WorkerCount>1</WorkerCount>
+		</LLHLS>
+		<WebRTC>
+			<Signalling>
+				<Port>3333</Port>
+				<TLSPort>3334</TLSPort>
+				<WorkerCount>1</WorkerCount>
+			</Signalling>
+			<IceCandidates>
+				<IceCandidate>*:10000-10005/udp</IceCandidate>
+				<!-- 
+					If you want to stream WebRTC over TCP, specify IP:Port for TURN server.
+					This uses the TURN protocol, which delivers the stream from the built-in TURN server to the player's TURN client over TCP. 
+					For detailed information, refer https://airensoft.gitbook.io/ovenmediaengine/streaming/webrtc-publishing#webrtc-over-tcp
+				-->
+				<TcpRelay>*:3478</TcpRelay>
+				<!-- TcpForce is an option to force the use of TCP rather than UDP in WebRTC streaming. (You can omit ?transport=tcp accordingly.) If <TcpRelay> is not set, playback may fail. -->
+				<TcpForce>true</TcpForce>
+				<TcpRelayWorkerCount>1</TcpRelayWorkerCount>
+			</IceCandidates>
+		</WebRTC>
+	</Publishers>
+</Bind>
 
 	<!--
 		Enable this configuration if you want to use API Server
@@ -190,19 +199,19 @@
 
 				<Enables>
 					<Providers>rtmp,webrtc,srt</Providers>
-					<Publishers>webrtc,hls,dash,lldash</Publishers>
+					<Publishers>webrtc,hls,llhls,dash,lldash</Publishers>
 				</Enables>
 			</SignedPolicy>
 			-->
 
 			<!--
 			<AdmissionWebhooks>
-				<TargetUrl></TargetUrl>
+				<ControlServerUrl></ControlServerUrl>
 				<SecretKey></SecretKey>
 				<Timeout>3000</Timeout>
 				<Enables>
 					<Providers>rtmp,webrtc,srt</Providers>
-					<Publishers>webrtc,hls,dash,lldash</Publishers>
+					<Publishers>webrtc,hls,llhls,dash,lldash</Publishers>
 				</Enables>
 			</AdmissionWebhooks>
 			-->
@@ -248,11 +257,36 @@
 						<OutputProfile>
 							<Name>bypass_stream</Name>
 							<OutputStreamName>${OriginStreamName}</OutputStreamName>
+
+							<!-- 
+							You can provide ABR with Renditions. Currently, ABR is only supported in LLHLS.
+							
+							<Renditions>
+								<Rendition>
+									<Name>Bypass</Name>
+									<Video>bypass_video</Video>
+									<Audio>bypass_audio</Audio>
+								</Rendition>
+								<Rendition>
+									<Name>FHD</Name>
+									<Video>video_1280</Video>
+									<Audio>bypass_audio</Audio>
+								</Rendition>
+								<Rendition>
+									<Name>HD</Name>
+									<Video>video_720</Video>
+									<Audio>bypass_audio</Audio>
+								</Rendition>
+							</Renditions> 
+							-->
+
 							<Encodes>
 								<Audio>
+									<Name>bypass_audio</Name>
 									<Bypass>true</Bypass>
 								</Audio>
 								<Video>
+									<Name>bypass_video</Name>
 									<Bypass>true</Bypass>
 								</Video>
 								<Audio>
@@ -263,8 +297,18 @@
 								</Audio>
 								<!-- 							
 								<Video>
-									<Codec>vp8</Codec>
-									<Bitrate>1024000</Bitrate>
+									<Name>video_1280</Name>
+									<Codec>h264</Codec>
+									<Bitrate>5024000</Bitrate>
+									<Framerate>30</Framerate>
+									<Width>1920</Width>
+									<Height>1280</Height>
+									<Preset>faster</Preset>
+								</Video>
+								<Video>
+									<Name>video_720</Name>
+									<Codec>h264</Codec>
+									<Bitrate>2024000</Bitrate>
 									<Framerate>30</Framerate>
 									<Width>1280</Width>
 									<Height>720</Height>
@@ -314,39 +358,14 @@
 							<Ulpfec>false</Ulpfec>
 							<JitterBuffer>false</JitterBuffer>
 						</WebRTC>
-						<HLS>
-							<SegmentDuration>5</SegmentDuration>
-							<SegmentCount>3</SegmentCount>
+						<LLHLS>
+							<ChunkDuration>0.5</ChunkDuration>
+							<SegmentDuration>6</SegmentDuration>
+							<SegmentCount>10</SegmentCount>
 							<CrossDomains>
 								<Url>*</Url>
 							</CrossDomains>
-						</HLS>
-						<DASH>
-							<SegmentDuration>5</SegmentDuration>
-							<SegmentCount>3</SegmentCount>
-							<CrossDomains>
-								<Url>*</Url>
-							</CrossDomains>
-							<!--
-								Enable DASH player to obtain UTCTiming from OME using /time?iso&ms API
-							-->
-							<UTCTiming>
-								<Scheme>urn:mpeg:dash:utc:http-xsdate:2014</Scheme>
-								<Value>/time?iso&amp;ms</Value>
-							</UTCTiming>
-						</DASH>
-						<LLDASH>
-							<SegmentDuration>5</SegmentDuration>
-							<CrossDomains>
-								<Url>*</Url>
-							</CrossDomains>
-							<!--
-								Use default options for UTCTiming
-									- scheme: urn:mpeg:dash:utc:http-xsdate:2014
-									- value: /time?iso&ms
-							-->
-							<UTCTiming />
-						</LLDASH>
+						</LLHLS>
 					</Publishers>
 				</Application>
 			</Applications>

@@ -16,14 +16,14 @@ namespace pvd
 {
 	std::shared_ptr<OvtStream> OvtStream::Create(const std::shared_ptr<pvd::PullApplication> &application, 
 											const uint32_t stream_id, const ov::String &stream_name,
-					  						const std::vector<ov::String> &url_list)
+					  						const std::vector<ov::String> &url_list, std::shared_ptr<pvd::PullStreamProperties> properties)
 	{
 		info::Stream stream_info(*std::static_pointer_cast<info::Application>(application), StreamSourceType::Ovt);
 
 		stream_info.SetId(stream_id);
 		stream_info.SetName(stream_name);
 
-		auto stream = std::make_shared<OvtStream>(application, stream_info, url_list);
+		auto stream = std::make_shared<OvtStream>(application, stream_info, url_list, properties);
 		if (!stream->Start())
 		{
 			// Explicit deletion
@@ -34,8 +34,8 @@ namespace pvd
 		return stream;
 	}
 
-	OvtStream::OvtStream(const std::shared_ptr<pvd::PullApplication> &application, const info::Stream &stream_info, const std::vector<ov::String> &url_list)
-			: pvd::PullStream(application, stream_info, url_list)
+	OvtStream::OvtStream(const std::shared_ptr<pvd::PullApplication> &application, const info::Stream &stream_info, const std::vector<ov::String> &url_list, std::shared_ptr<pvd::PullStreamProperties> properties)
+			: pvd::PullStream(application, stream_info, url_list, properties)
 	{
 		_last_request_id = 0;
 		SetState(State::IDLE);
@@ -304,8 +304,10 @@ namespace pvd
 		// Parse stream and add track
 		auto json_stream = json_contents["stream"];
 		auto json_tracks = json_stream["tracks"];
-
+		auto json_renditions = json_stream["renditions"];
+		
 		// Validation
+		// renditions is optional
 		if (json_stream["appName"].isNull() || json_stream["streamName"].isNull() || json_stream["tracks"].isNull() ||
 			!json_tracks.isArray())
 		{
@@ -320,6 +322,19 @@ namespace pvd
 			SetOriginStreamUUID(json_stream["originStreamUUID"].asString().c_str());
 		}
 
+		// Renditions
+		
+		for (size_t i = 0; i < json_renditions.size(); i++)
+		{
+			auto json_rendition = json_renditions[static_cast<int>(i)];
+
+			auto name = json_rendition["name"].asString().c_str();
+			auto video_track_name = json_rendition["video_track_name"].asString().c_str();
+			auto audio_track_name = json_rendition["audio_track_name"].asString().c_str();
+
+			AddRendition(std::make_shared<Rendition>(name, video_track_name, audio_track_name));
+		}
+
 		//SetName(json_stream["streamName"].asString().c_str());
 		std::shared_ptr<MediaTrack> new_track;
 
@@ -330,7 +345,7 @@ namespace pvd
 			new_track = std::make_shared<MediaTrack>();
 
 			// Validation
-			if (!json_track["id"].isUInt() || !json_track["codecId"].isUInt() || !json_track["mediaType"].isUInt() ||
+			if (!json_track["id"].isUInt() || !json_track["name"].isString() || !json_track["codecId"].isUInt() || !json_track["mediaType"].isUInt() ||
 				!json_track["timebase_num"].isUInt() || !json_track["timebase_den"].isUInt() ||
 				!json_track["bitrate"].isUInt() ||
 				!json_track["startFrameTime"].isUInt64() || !json_track["lastFrameTime"].isUInt64())
@@ -341,6 +356,7 @@ namespace pvd
 			}
 
 			new_track->SetId(json_track["id"].asUInt());
+			new_track->SetName(json_track["name"].asString().c_str());
 			new_track->SetCodecId(static_cast<cmn::MediaCodecId>(json_track["codecId"].asUInt()));
 			new_track->SetMediaType(static_cast<cmn::MediaType>(json_track["mediaType"].asUInt()));
 			new_track->SetTimeBase(json_track["timebase_num"].asUInt(), json_track["timebase_den"].asUInt());
@@ -369,6 +385,9 @@ namespace pvd
 						logte("There is no SPS/PPS in the AVCDecoderConfigurationRecord");
 						return false;
 					}
+
+					new_track->SetH264SpsData(config.GetSPS(0));
+					new_track->SetH264PpsData(config.GetPPS(0));
 					
 					auto [sps_pps_data, frag_header] = config.GetSpsPpsAsAnnexB(4);
 					new_track->SetH264SpsPpsAnnexBFormat(sps_pps_data, frag_header);
@@ -626,25 +645,64 @@ namespace pvd
 		{
 			if(_depacketizer.IsAvaliableMediaPacket())
 			{
-				
 				auto media_packet = _depacketizer.PopMediaPacket();
 				
 				media_packet->SetMsid(GetMsid());
 				media_packet->SetPacketType(cmn::PacketType::OVT);
 
 				auto pts = AdjustTimestampByBase(media_packet->GetTrackId(), media_packet->GetPts(), std::numeric_limits<int64_t>::max());
-				auto dts = pts;
-			
+				auto dts = media_packet->GetDts() + (pts - media_packet->GetPts());
+				[[maybe_unused]] auto old_pts = media_packet->GetPts();
+				[[maybe_unused]] auto old_dts = media_packet->GetDts();
 				media_packet->SetPts(pts);
 				media_packet->SetDts(dts);
 
-				// logtd("%s(%d) - pts(%llu)", StringFromMediaType(media_packet->GetMediaType()).CStr(), media_packet->GetTrackId(), pts);
-				SendFrame(media_packet);
+				logtp("%s/%s / msid(%d), id(%d) type(%s) flag(%6s), pts_ms(%10lld) pts(%10lld -> %10lld) dts(%10lld -> %10lld) tb(%d/%d)", 
+					GetApplicationName(), 
+					GetName().CStr(), 
+					media_packet->GetMsid(),
+					media_packet->GetTrackId(), 
+					StringFromMediaType(media_packet->GetMediaType()).CStr(), 
+					StringFromMediaPacketFlag(media_packet->GetFlag()).CStr(),
+					(int64_t)(pts * GetTrack(media_packet->GetTrackId())->GetTimeBase().GetExpr() * 1000),
+					old_pts, 
+					pts, 
+					old_dts,
+					dts,
+					GetTrack(media_packet->GetTrackId())->GetTimeBase().GetNum(), 
+					GetTrack(media_packet->GetTrackId())->GetTimeBase().GetDen()
+				);
+
+				// After the MSID is changed, the packet is dropped until key frame is received.
+				bool drop = false;
+				if(_last_msid_map[media_packet->GetTrackId()] != media_packet->GetMsid())
+				{
+					if(media_packet->GetFlag() == MediaPacketFlag::Key ) 
+					{
+						_last_msid_map[media_packet->GetTrackId()] = media_packet->GetMsid();
+					}
+					else 
+					{
+						drop = true;
+					}
+				}
+
+				// When switching streams, the PTS of the packet may become negative due to the start time of the first packet. Packets before the base timestamp are defined as a drop policy.
+ 				if(media_packet->GetPts() < 0) 
+				 {
+					drop = true;
+				 }
+
+				if(drop == false)
+				{
+					SendFrame(media_packet);
+				}
 
 				if(_depacketizer.IsAvaliableMediaPacket() || _depacketizer.IsAvailableMessage())
 				{
 					continue;
 				}
+
 				return PullStream::ProcessMediaResult::PROCESS_MEDIA_SUCCESS;
 			}
 			else if(_depacketizer.IsAvailableMessage())

@@ -76,7 +76,7 @@ namespace api
 
 			if (certificate != nullptr)
 			{
-				_https_server = http_server_manager->CreateHttpsServer("APIServer", tls_address, certificate, worker_count);
+				_https_server = http_server_manager->CreateHttpsServer("APIServer", tls_address, certificate, false, worker_count);
 
 				if (_https_server != nullptr)
 				{
@@ -181,7 +181,7 @@ namespace api
 		auto http_interceptor = std::make_shared<http::svr::DefaultInterceptor>();
 
 		// CORS header processor
-		http_interceptor->Register(http::Method::All, R"(.+)", [=](const std::shared_ptr<http::svr::HttpConnection> &client) -> http::svr::NextHandler {
+		http_interceptor->Register(http::Method::All, R"(.+)", [=](const std::shared_ptr<http::svr::HttpExchange> &client) -> http::svr::NextHandler {
 			auto response = client->GetResponse();
 			auto request = client->GetRequest();
 

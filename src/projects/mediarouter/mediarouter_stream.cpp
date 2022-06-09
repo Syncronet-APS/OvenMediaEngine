@@ -150,8 +150,6 @@ bool MediaRouteStream::ProcessH264AVCCStream(std::shared_ptr<MediaTrack> &media_
 			return false;
 		}
 
-		logtd("[SPS] %s [PPS] %s", ov::Base64::Encode(config.GetSPS(0)).CStr(), ov::Base64::Encode(config.GetPPS(0)).CStr());
-
 		if (config.NumOfSPS() > 0)
 		{
 			auto sps_data = config.GetSPS(0);
@@ -161,9 +159,16 @@ bool MediaRouteStream::ProcessH264AVCCStream(std::shared_ptr<MediaTrack> &media_
 				logte("Could not parse H264 SPS unit");
 				return false;
 			}
-
+			
+			media_track->SetH264SpsData(sps_data);
 			media_track->SetWidth(sps.GetWidth());
 			media_track->SetHeight(sps.GetHeight());
+		}
+		
+		if (config.NumOfPPS() > 0)
+		{
+			auto pps_data = config.GetPPS(0);
+			media_track->SetH264PpsData(pps_data);
 		}
 
 		media_track->SetCodecExtradata(media_packet->GetData());
@@ -175,7 +180,7 @@ bool MediaRouteStream::ProcessH264AVCCStream(std::shared_ptr<MediaTrack> &media_
 	// Convert to AnnexB and Insert SPS/PPS if there are no SPS/PPS nal units.
 	else if (media_packet->GetPacketType() == cmn::PacketType::NALU)
 	{
-		auto converted_data = std::make_shared<ov::Data>();
+		auto converted_data = std::make_shared<ov::Data>(media_packet->GetDataLength() + (media_packet->GetDataLength() / 2));
 		FragmentationHeader fragment_header;
 		size_t nalu_offset = 0;
 
@@ -207,7 +212,7 @@ bool MediaRouteStream::ProcessH264AVCCStream(std::shared_ptr<MediaTrack> &media_
 
 			// Exception handling for encoder that transmits AVCC in non-standard format ([Size][Start Code][NalU])
 			if ((nalu->GetLength() > 3 && nalu->GetDataAs<uint8_t>()[0] == 0x00 && nalu->GetDataAs<uint8_t>()[1] == 0x00 && nalu->GetDataAs<uint8_t>()[2] == 0x01) ||
-				(nalu->GetLength() > 3 && nalu->GetDataAs<uint8_t>()[0] == 0x00 && nalu->GetDataAs<uint8_t>()[1] == 0x00 && nalu->GetDataAs<uint8_t>()[2] == 0x00 && nalu->GetDataAs<uint8_t>()[3] == 0x01))
+				(nalu->GetLength() > 4 && nalu->GetDataAs<uint8_t>()[0] == 0x00 && nalu->GetDataAs<uint8_t>()[1] == 0x00 && nalu->GetDataAs<uint8_t>()[2] == 0x00 && nalu->GetDataAs<uint8_t>()[3] == 0x01))
 			{
 				size_t start_code_size = (nalu->GetDataAs<uint8_t>()[2] == 0x01) ? 3 : 4;
 
@@ -254,7 +259,7 @@ bool MediaRouteStream::ProcessH264AVCCStream(std::shared_ptr<MediaTrack> &media_
 		if (has_idr == true && (has_sps == false || has_pps == false) && media_track->GetH264SpsPpsAnnexBFormat() != nullptr)
 		{
 			// Insert SPS/PPS nal units so that player can start to play faster
-			auto processed_data = std::make_shared<ov::Data>();
+			auto processed_data = std::make_shared<ov::Data>(65535);
 			auto decode_parmeters = media_track->GetH264SpsPpsAnnexBFormat();
 
 			processed_data->Append(decode_parmeters);
@@ -349,7 +354,6 @@ bool MediaRouteStream::ProcessH264AnnexBStream(std::shared_ptr<MediaTrack> &medi
 
 		if (nal_header.GetNalUnitType() == H264NalUnitType::Sps)
 		{
-			auto nalu = std::make_shared<ov::Data>(bitstream + offset, offset_length);
 			has_sps = true;
 
 			// logtd("[-SPS] %s ", ov::Base64::Encode(nalu).CStr());
@@ -357,6 +361,7 @@ bool MediaRouteStream::ProcessH264AnnexBStream(std::shared_ptr<MediaTrack> &medi
 			// Parse track info if needed
 			if (media_track->IsValid() == false)
 			{
+				auto nalu = std::make_shared<ov::Data>(bitstream + offset, offset_length);
 				H264SPS sps;
 				if (H264Parser::ParseSPS(nalu->GetDataAs<uint8_t>(), nalu->GetLength(), sps) == false)
 				{
@@ -364,6 +369,7 @@ bool MediaRouteStream::ProcessH264AnnexBStream(std::shared_ptr<MediaTrack> &medi
 					return false;
 				}
 
+				media_track->SetH264SpsData(nalu);
 				media_track->SetWidth(sps.GetWidth());
 				media_track->SetHeight(sps.GetHeight());
 
@@ -377,7 +383,6 @@ bool MediaRouteStream::ProcessH264AnnexBStream(std::shared_ptr<MediaTrack> &medi
 		}
 		else if (nal_header.GetNalUnitType() == H264NalUnitType::Pps)
 		{
-			auto nalu = std::make_shared<ov::Data>(bitstream + offset, offset_length);
 			has_pps = true;
 
 			// logtd("[-PPS] %s ", ov::Base64::Encode(nalu).CStr());
@@ -385,6 +390,8 @@ bool MediaRouteStream::ProcessH264AnnexBStream(std::shared_ptr<MediaTrack> &medi
 			// Parse track info if needed
 			if (media_track->IsValid() == false)
 			{
+				auto nalu = std::make_shared<ov::Data>(bitstream + offset, offset_length);
+				media_track->SetH264PpsData(nalu);
 				avc_decoder_configuration_record.AddPPS(nalu);
 			}
 		}
@@ -417,7 +424,7 @@ bool MediaRouteStream::ProcessH264AnnexBStream(std::shared_ptr<MediaTrack> &medi
 	if (has_idr == true && (has_sps == false || has_pps == false) && media_track->GetH264SpsPpsAnnexBFormat() != nullptr)
 	{
 		// Insert SPS/PPS nal units so that player can start to play faster
-		auto processed_data = std::make_shared<ov::Data>();
+		auto processed_data = std::make_shared<ov::Data>(media_packet->GetData()->GetLength() + 1024);
 		auto decode_parmeters = media_track->GetH264SpsPpsAnnexBFormat();
 		processed_data->Append(decode_parmeters);
 		processed_data->Append(media_packet->GetData());
@@ -778,7 +785,7 @@ void MediaRouteStream::UpdateStatistics(std::shared_ptr<MediaTrack> &media_track
 		case cmn::BitstreamFormat::H265_ANNEXB:
 			if (_max_warning_count_bframe < 10)
 			{
-				if (_stat_recv_pkt_ldts[track_id] > media_packet->GetDts())
+				if (_stat_recv_pkt_count[track_id] > 0 && _stat_recv_pkt_lpts[track_id] > media_packet->GetPts())
 				{
 					media_track->SetBframes(true);
 				}
@@ -849,7 +856,7 @@ void MediaRouteStream::UpdateStatistics(std::shared_ptr<MediaTrack> &media_track
 			min_pts = std::min(min_pts, rescaled_last_pts);
 			max_pts = std::max(max_pts, rescaled_last_pts);
 
-			stat_track_str.AppendFormat("\n\ttrack:%3d, type: %4s, codec: %4s(%2d), pts: %lldms(%5lldms), tb: %d/%5d, pkt_cnt: %6lld, pkt_siz: %sB, bps: %dKbps",
+			stat_track_str.AppendFormat("\n\ttrack:%3d, type: %4s, codec: %4s(%2d), pts: %lldms, dly: %5lldms, tb: %d/%5d, pkt_cnt: %6lld, pkt_siz: %sB, bps: %dKbps",
 										track_id,
 										track->GetMediaType() == MediaType::Video ? "video" : "audio",
 										::StringFromMediaCodecId(track->GetCodecId()).CStr(),
@@ -864,7 +871,8 @@ void MediaRouteStream::UpdateStatistics(std::shared_ptr<MediaTrack> &media_track
 
 		ov::String stat_stream_str = "";
 
-		stat_stream_str.AppendFormat("\n - MediaRouter Stream | type: %s, name: %s/%s, uptime: %lldms, queue: %d, min/max gap: %lldms",
+		stat_stream_str.AppendFormat("\n - MediaRouter Stream | id: %u, type: %s, name: %s/%s, uptime: %lldms, queue: %d, sync: %lldms",
+									 _stream->GetId(),
 									 _inout_type == MediaRouterStreamType::INBOUND ? "Inbound" : "Outbound",
 									 _stream->GetApplicationInfo().GetName().CStr(),
 									 _stream->GetName().CStr(),
@@ -1118,6 +1126,8 @@ std::shared_ptr<MediaPacket> MediaRouteStream::Pop()
 	////////////////////////////////////////////////////////////////////////////////////
 	// Statistics
 	UpdateStatistics(media_track, pop_media_packet);
+
+	media_track->OnFrameAdded(pop_media_packet->GetDataLength());
 
 	return pop_media_packet;
 }
