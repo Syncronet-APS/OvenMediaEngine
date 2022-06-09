@@ -180,21 +180,55 @@
 						<OutputProfile>
 							<Name>bypass_stream</Name>
 							<OutputStreamName>${OriginStreamName}</OutputStreamName>
+							<Renditions>
+								<Rendition>
+									<Name>Bypass</Name>
+									<Video>bypass_video</Video>
+									<Audio>bypass_audio</Audio>
+								</Rendition>
+								<Rendition>
+									<Name>FHD</Name>
+									<Video>video_1280</Video>
+									<Audio>bypass_audio</Audio>
+								</Rendition>
+								<Rendition>
+									<Name>HD</Name>
+									<Video>video_720</Video>
+									<Audio>bypass_audio</Audio>
+								</Rendition>
+							</Renditions>
 							<Encodes>
-								<!-- WebRTC does not support AAC -->
-								<!-- @see https://airensoft.gitbook.io/ovenmediaengine/transcoding#bypass-without-transcoding -->
+								<Audio>
+									<Name>bypass_audio</Name>
+									<Bypass>true</Bypass>
+								</Audio>
+								<Video>
+									<Name>bypass_video</Name>
+									<Bypass>true</Bypass>
+								</Video>
 								<Audio>
 									<Codec>opus</Codec>
 									<Bitrate>128000</Bitrate>
 									<Samplerate>48000</Samplerate>
 									<Channel>2</Channel>
 								</Audio>
-
-								<Audio>
-									<Bypass>true</Bypass>
-								</Audio>
 								<Video>
-									<Bypass>true</Bypass>
+									<Name>video_1280</Name>
+									<Codec>h264</Codec>
+									<Bitrate>5024000</Bitrate>
+									<Framerate>30</Framerate>
+									<Width>1920</Width>
+									<Height>1280</Height>
+									<Preset>faster</Preset>
+								</Video>
+								<Video>
+									<Name>video_720</Name>
+									<Codec>h264</Codec>
+									<Bitrate>2024000</Bitrate>
+									<Framerate>30</Framerate>
+									<Width>1280</Width>
+									<Height>720</Height>
+									<Preset>faster</Preset>
 								</Video>
 							</Encodes>
 						</OutputProfile>
