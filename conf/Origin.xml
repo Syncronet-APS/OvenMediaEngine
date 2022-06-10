@@ -237,16 +237,15 @@
 									<Bitrate>5000000</Bitrate>
 									<Framerate>30</Framerate>
 								</Video>
-								<Video>
+								<!-- <Video>
 									<Name>720_vp8</Name>
 									<Codec>vp8</Codec>
 									<Width>1280</Width>
-									<!-- <Height>720</Height> -->
+									<Height>720</Height>
 									<Bitrate>2000000</Bitrate>
 									<Framerate>30.0</Framerate>
 									<Preset>fast</Preset>
-									<!-- <ThreadCount>4</ThreadCount> -->
-								</Video>
+								</Video> -->
 								<!-- <Video>
 									<Codec>h265</Codec>
 									<Width>1280</Width>
