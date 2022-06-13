@@ -272,6 +272,53 @@
 								</Audio> -->
 							</Encodes>
 						</OutputProfile>
+
+						<OutputProfile>
+							<Name>sd_stream</Name>
+							<OutputStreamName>${OriginStreamName}_sd</OutputStreamName>
+							<Encodes>
+								<Video>
+									<Codec>h264</Codec>
+									<Width>852</Width>
+									<!-- <Height>480</Height> -->
+									<Bitrate>5000000</Bitrate>
+									<Framerate>30</Framerate>
+								</Video>
+								<!-- <Video>
+									<Name>720_vp8</Name>
+									<Codec>vp8</Codec>
+									<Width>1280</Width>
+									<Height>720</Height>
+									<Bitrate>2000000</Bitrate>
+									<Framerate>30.0</Framerate>
+									<Preset>fast</Preset>
+								</Video> -->
+								<!-- <Video>
+									<Codec>h265</Codec>
+									<Width>1280</Width>
+									<Height>720</Height>
+									<Bitrate>5000000</Bitrate>
+									<Preset>fast</Preset>
+									<Framerate>30</Framerate>
+								</Video> -->
+								<!-- <Audio>
+									<Codec>aac</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio> -->
+								<Audio>
+									<Bypass>true</Bypass>
+								</Audio>
+								<!-- <Audio>
+									<Name>opus_128</Name>
+									<Codec>opus</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+								</Audio> -->
+							</Encodes>
+						</OutputProfile>
 					</OutputProfiles>
 					<Providers>
 						<!-- <OVT /> -->
