@@ -336,8 +336,8 @@
 						</MPEGTS> -->
 					</Providers>
 					<Publishers>
-						<AppWorkerCount>4</AppWorkerCount>
-						<StreamWorkerCount>16</StreamWorkerCount>
+						<AppWorkerCount>1</AppWorkerCount>
+						<StreamWorkerCount>6</StreamWorkerCount>
 						<OVT />
 						<!-- <WebRTC>
 							<Timeout>30000</Timeout>
