@@ -56,10 +56,10 @@ jobs:
       #     service_account: "my-service-account@my-project.iam.gserviceaccount.com"
 
       # Alternative option - authentication via credentials json
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v0'
+      - id: "auth"
+        uses: "google-github-actions/auth@v0"
         with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
 
       # Setup gcloud CLI
       - name: Set up Cloud SDK
@@ -74,3 +74,20 @@ jobs:
           kubectl rollout restart deployment/origin deployment/edge
           kubectl rollout status deployment/origin
           kubectl rollout status deployment/edge
+
+  slackNotification:
+    needs: deploy
+    name: Slack Notification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: #system-developing
+          SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
+          # SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_ICON_EMOJI: 🚀
+          SLACK_TITLE: Oven Media Engine (OME)
+          SLACK_USERNAME: Github Deployment
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
